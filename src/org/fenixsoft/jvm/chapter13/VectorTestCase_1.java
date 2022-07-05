@@ -3,7 +3,7 @@ package org.fenixsoft.jvm.chapter13;
 import java.util.Vector;
 
 /**
- * @author zzm
+ * 
  */
 public class VectorTestCase_1 {
 

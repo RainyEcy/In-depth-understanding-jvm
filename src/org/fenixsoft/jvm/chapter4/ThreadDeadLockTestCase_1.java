@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
- * @author zzm
+ * 
  */
 public class ThreadDeadLockTestCase_1 {
     /**

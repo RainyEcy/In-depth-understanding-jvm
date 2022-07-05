@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * @author zzm
+ * 
  */
 public class BTraceTest {
 

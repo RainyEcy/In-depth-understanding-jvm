@@ -7,7 +7,7 @@ import static java.lang.invoke.MethodHandles.lookup;
 
 /**
  * JSR 292 MethodHandle基础用法演示
- * @author zzm
+ * 
  */
 public class MethodHandleTest {
 

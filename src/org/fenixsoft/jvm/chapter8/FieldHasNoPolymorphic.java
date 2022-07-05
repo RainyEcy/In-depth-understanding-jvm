@@ -2,7 +2,7 @@ package org.fenixsoft.jvm.chapter8;
 
 /**
  * 字段不参与多态
- * @author zzm
+ * 
  */
 public class FieldHasNoPolymorphic {
 

@@ -2,7 +2,7 @@ package org.fenixsoft.jvm.chapter8;
 
 /**
  * 方法静态分派演示
- * @author zzm
+ * 
  */
 public class StaticDispatch {
 

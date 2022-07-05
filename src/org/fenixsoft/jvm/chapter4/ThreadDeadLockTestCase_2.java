@@ -1,7 +1,7 @@
 package org.fenixsoft.jvm.chapter4;
 
 /**
- * @author zzm
+ * 
  */
 public class ThreadDeadLockTestCase_2 {
 

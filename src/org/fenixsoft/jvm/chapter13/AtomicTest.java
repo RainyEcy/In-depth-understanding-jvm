@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Atomic变量自增运算测试
  *
- * @author zzm
+ * 
  */
 public class AtomicTest {
 

@@ -5,9 +5,10 @@ import sun.misc.Unsafe;
 import java.lang.reflect.Field;
 
 /**
+ * 本机直接内存溢出
  * VM Args：-Xmx20M -XX:MaxDirectMemorySize=10M
- *
- * @author zzm
+ * -XX:MaxDirectMemorySize=10M 直接内存最大，不设置默认为xmx一致
+ * 
  */
 public class DirectMemoryOOM {
 

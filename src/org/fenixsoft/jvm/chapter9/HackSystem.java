@@ -8,7 +8,7 @@ import java.io.PrintStream;
  * 为Javaclass劫持java.lang.System提供支持
  * 除了out和err外，其余的都直接转发给System处理
  *
- * @author zzm
+ * 
  */
 public class HackSystem {
 

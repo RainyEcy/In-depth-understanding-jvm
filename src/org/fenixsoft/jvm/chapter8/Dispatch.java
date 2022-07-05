@@ -2,7 +2,7 @@ package org.fenixsoft.jvm.chapter8;
 
 /**
  * 单分派、多分派演示
- * @author zzm
+ * 
  */
 public class Dispatch {
 

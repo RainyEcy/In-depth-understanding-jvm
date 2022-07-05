@@ -1,7 +1,7 @@
 package org.fenixsoft.jvm.chapter7;
 
 /**
- * @author zzm
+ * 
  */
 
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.io.InputStream;
 /**
  * 类加载器与instanceof关键字演示
  *
- * @author zzm
+ * 
  */
 public class ClassLoaderTest {
 

@@ -3,7 +3,7 @@ package org.fenixsoft.jvm.chapter12;
 /**
  * volatile变量自增运算测试
  *
- * @author zzm
+ * 
  */
 public class VolatileTest {
 

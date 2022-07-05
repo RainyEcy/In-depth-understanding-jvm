@@ -1,7 +1,7 @@
 package org.fenixsoft.jvm.chapter10;
 
 /**
- * @author zzm
+ * 
  */
 public class AutoBoxing {
     public static void main(String[] args) {

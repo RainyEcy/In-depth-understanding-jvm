@@ -2,7 +2,7 @@ package org.fenixsoft.jvm.chapter3;
 
 /**
  * VM参数：+XX:UseSerialGC
- * @author zzm
+ * 
  */
 public class TestSerialGCAllocation {
 
