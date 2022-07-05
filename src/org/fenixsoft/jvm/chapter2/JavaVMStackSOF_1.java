@@ -1,9 +1,9 @@
 package org.fenixsoft.jvm.chapter2;
 
 /**
+ * Java虚拟机栈内存溢出
  * VM Args：-Xss128k
- *
- * @author zzm
+ * -Xss2M 每个线程的虚拟机栈大小
  */
 public class JavaVMStackSOF_1 {
 

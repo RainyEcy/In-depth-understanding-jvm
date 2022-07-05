@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * VM Args：-XX:PermSize=6M -XX:MaxPermSize=6M
- *
- * @author zzm
+ * JDK7之前的常量存放在方法区内存，后来存放在元空间跟随操作系统内存大小
+ * VM Args：jdk7 -XX:PermSize=6M -XX:MaxPermSize=6M
+ * jdk8 -XX:MaxMetaspaceSize=6M -XX:MetaspaceSize=6M
  */
 public class RuntimeConstantPoolOOM_1 {
 

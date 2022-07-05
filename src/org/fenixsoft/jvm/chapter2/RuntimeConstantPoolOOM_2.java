@@ -1,5 +1,8 @@
 package org.fenixsoft.jvm.chapter2;
 
+/**
+ * String.intern测试 首次遇到原则
+ */
 public class RuntimeConstantPoolOOM_2 {
 
     public static void main(String[] args) {

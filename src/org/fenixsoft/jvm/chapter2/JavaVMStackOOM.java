@@ -1,9 +1,9 @@
 package org.fenixsoft.jvm.chapter2;
 
 /**
+ * Java本地方法栈内存溢出
  * VM Args：-Xss2M （这时候不妨设大些，请在32位系统下运行）
- *
- * @author zzm
+ * -Xss2M 每个线程的虚拟机栈大小
  */
 public class JavaVMStackOOM {
 

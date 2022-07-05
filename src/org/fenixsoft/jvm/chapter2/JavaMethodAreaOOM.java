@@ -7,9 +7,10 @@ import net.sf.cglib.proxy.MethodProxy;
 import java.lang.reflect.Method;
 
 /**
+ * 方法区储存类型信息，动态代理无限生成新类型使方法区内存溢出
  * VM Args： -XX:PermSize=10M -XX:MaxPermSize=10M
- *
- * @author zzm
+ * -XX:PermSize=10M 方法区初始化内存
+ * -XX:MaxPermSize=10M 方法区最大内存
  */
 public class JavaMethodAreaOOM {
 
@@ -19,6 +20,7 @@ public class JavaMethodAreaOOM {
             enhancer.setSuperclass(OOMObject.class);
             enhancer.setUseCache(false);
             enhancer.setCallback(new MethodInterceptor() {
+                @Override
                 public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
                     return proxy.invokeSuper(obj, args);
                 }
