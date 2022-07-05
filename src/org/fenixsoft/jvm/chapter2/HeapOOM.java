@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 堆内存超出
  * VM Args：-Xms20m -Xmx20m -XX:+HeapDumpOnOutOfMemoryError
- *
- * @author zzm
+ * -Xms20m 堆最小值
+ * -Xmx20m 堆最大值
+ * -XX:+HeapDumpOnOutOfMemoryError 内存溢出时打印堆转储快照，以便分析
  */
 public class HeapOOM {
 
