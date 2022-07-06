@@ -2,8 +2,7 @@ package org.fenixsoft.jvm.chapter3;
 
 /**
  * testGC()方法执行后，objA和objB会不会被GC呢？
- *
- * 
+ * -Xlog:gc* 打印gc详细日志
  */
 public class ReferenceCountingGC {
 
