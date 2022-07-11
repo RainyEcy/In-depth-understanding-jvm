@@ -17,6 +17,10 @@ public class JHSDBTestCase {
 
     private static class ObjectHolder {}
 
+    /**
+     * -Xms10m -XX:+UseSerialGC -XX:-UseCompressedOops
+     * @param args
+     */
     public static void main(String[] args) {
         Test test = new JHSDBTestCase.Test();
         test.foo();

@@ -22,6 +22,9 @@ public class JConsoleTestCase {
         System.gc();
     }
 
+    /**
+     * -Xms100m -Xmx100m -XX:+UseSerialGC
+     */
     public static void main(String[] args) throws Exception {
         fillHeap(1000);
     }

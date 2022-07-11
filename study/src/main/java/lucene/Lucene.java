@@ -1,4 +1,4 @@
-package org.fenixsoft.jvm.lucene;
+package lucene;
 
 import org.apache.lucene.util.RamUsageEstimator;
 
