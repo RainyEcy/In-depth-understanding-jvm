@@ -1,9 +1,17 @@
 package org.fenixsoft.clazz;
 
 public class TestClass {
+
+    public static String str = "ecy test";
+
+    class InnerClass {
+        private int y;
+    }
+
     private int m;
 
-    public int inc() {
+    @Deprecated
+    public int inc() throws NullPointerException, StackOverflowError, IndexOutOfBoundsException {
         return m + 1;
     }
 
@@ -11,18 +19,13 @@ public class TestClass {
         int i;
         try {
             i = 1;
-            throw new RuntimeException();
+            return i;
         } catch (NullPointerException e) {
             i = 2;
             return i;
         } finally {
             i = 3;
         }
-    }
-
-    public static void main(String[] args) {
-        int l = new TestClass().exception();
-        System.out.println(l);
     }
 
 }

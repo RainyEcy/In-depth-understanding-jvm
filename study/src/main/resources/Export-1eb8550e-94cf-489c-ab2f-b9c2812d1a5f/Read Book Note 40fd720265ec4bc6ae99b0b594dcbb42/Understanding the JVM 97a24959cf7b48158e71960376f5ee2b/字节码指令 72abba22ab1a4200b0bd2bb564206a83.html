@@ -1,0 +1,676 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>字节码指令</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="72abba22-ab1a-4200-b0bd-2bb564206a83" class="page sans"><header><h1 class="page-title">字节码指令</h1></header><div class="page-body"><hr id="a440add7-314e-4f17-ab7c-d4d1caac2550"/><nav id="a4a51b53-3def-486a-be0d-4e9798e211e4" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#3f5f6757-f15c-4310-ad61-0c5c0f1d1c30">定义</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#30a1b54a-5511-432f-ba84-ecf0d284bd3a">字节码与数据类型</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#2967d23b-bc77-458f-b938-1da498178791">加载和存储指令</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#2a416d6c-98e0-4b44-baf8-8ed7c8c7cf39">运算指令</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#2de955b6-0524-4bc1-9dfc-54d38c62d76c">类型转换指令</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#1448d8e2-6717-4fd3-9423-0e459b77272b">对象创建与访问指令</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#9f73af52-bbf0-4fb2-a0dc-d381b009d6d3">操作数栈管理指令</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#ce6b5b8c-b401-4b0e-9548-6ab263b49bcd">控制转移指令</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#8eca650a-a9cf-4dda-98e5-66cf1b1bc61c"><strong>方法调用和返回指令</strong></a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#bc7da1c3-4820-405a-b742-e85d7d781c20"><strong>同步指令</strong></a></div></nav><h1 id="3f5f6757-f15c-4310-ad61-0c5c0f1d1c30" class="">定义</h1><blockquote id="4ca54687-de6c-49fa-babf-87eb7767940e" class="block-color-gray_background">Java虚拟机的指令由一个字节长度的、代表着某种特定操作含义的数字（称作操作码，<code>Opcode</code>）以及跟随其后的零至多个代表此操作的参数（操作数 ， <code>Operand</code>）构成。<p id="48d98e90-d17b-450d-9c35-c5dc817000f6" class="">由于虚拟机是面向于操作数栈而不是面向寄存器的架构，所以大多数指令都不包含操作数，只有一个操作码，指令参数都存放在操作数栈中。</p><h3 id="72b64275-17c8-4a0e-85a0-fb495099bf48" class="">字节码特点：</h3><ul id="b558c907-b323-42d3-a14f-747b46985104" class="bulleted-list"><li style="list-style-type:disc">Java虚拟机操作码的长度为一个字节（0-255），和意味着指令集的操作码总数不超过256条。</li></ul><ul id="44e1071c-4dfc-40b1-8788-51a42b41171f" class="bulleted-list"><li style="list-style-type:disc">Class文件格式放弃了编译后代码的操作数长度对其，所以如果要处理超过一个字节的数据，不得不在运行时从字节中重建出具体数据结构（（byte1 &lt;&lt; 8）| byte2）。这种做法在某种程度上会导致解释执行字节码将损失一些性能，这样做的优势在于放弃了对齐，可以省略大量的填充和间隔符号，获得短小精干的编译代码。</li></ul><h3 id="7eff452b-a999-443a-aad8-39c6e33c0430" class="">执行模型：</h3><pre id="dbbf2c7b-61bf-4347-9324-1636e768b9c9" class="code"><code>do{
+	自动计算PC寄存器的值加1；
+	根据PC寄存器指示的位置，从字节码流中取出操作码；
+	if（字节码存在操作数）从字节码流中取出操作数；
+	执行操作码所定义的操作；
+}while(字节码长度 &gt; 0)</code></pre></blockquote><h1 id="30a1b54a-5511-432f-ba84-ecf0d284bd3a" class="">字节码与数据类型</h1><blockquote id="a82ff17a-bf92-46be-b8c2-8a04be426943" class="block-color-gray_background">在Java虚拟机的指令集中，大多数指令都包含其操作所对应的数据类型信息。<p id="bd77c9ce-b96d-4e24-9733-f1c63007dfcb" class="">如<code>iload</code>指令用于从局部变量表中加载<code>int</code>型的数据到操作数栈中，而<code>fload</code>指令加载的则是<code>float</code>类型。</p><p id="b5003176-672a-4b4e-9fcb-9f675adc4011" class="">这两条指令的操作在虚拟机内部可能会是同一段代码实现的，但在<code>Class</code>文件中它们必须拥有各自的操作码。</p><h3 id="022b7784-8e44-431c-8f38-adb8cb4f7151" class=""><strong>操作码助记符</strong></h3><p id="e9b9fef9-a0f9-4e42-9174-b58c098fcec0" class="">与数据类型相关的操作码中都有特殊的字符来表明为哪种数据服务</p><ul id="b84a2bf8-4d00-41dd-a8e6-ddb423327b88" class="bulleted-list"><li style="list-style-type:disc"><code>i</code>：代表对<code>int</code>类型的数据操作</li></ul><ul id="5f67afe4-c501-4b19-80f1-3343f797e3ed" class="bulleted-list"><li style="list-style-type:disc"><code>l</code>：代表<code>long</code></li></ul><ul id="2a40bc79-51ba-4ff6-99c4-1b7c7dd7f769" class="bulleted-list"><li style="list-style-type:disc"><code>s</code>：代表<code>short</code></li></ul><ul id="1187e173-52dc-409f-b210-502fa21d2fd3" class="bulleted-list"><li style="list-style-type:disc"><code>b</code>：代表<code>byte</code></li></ul><ul id="1880a7f2-c6a8-4b3f-99cf-906e07624c43" class="bulleted-list"><li style="list-style-type:disc"><code>c</code>：代表<code>char</code></li></ul><ul id="3a5727c5-af53-4154-b7a4-8f1225c5ace9" class="bulleted-list"><li style="list-style-type:disc"><code>f</code>：代表<code>float</code></li></ul><ul id="f47ab8d8-c1dc-4c86-b399-8fa8821b34d5" class="bulleted-list"><li style="list-style-type:disc"><code>d</code>：代表<code>double</code></li></ul><ul id="e22ffcf2-d223-4525-9118-19414b72a9ed" class="bulleted-list"><li style="list-style-type:disc"><code>a</code>：代表<code>reference</code></li></ul><p id="37f5c2bf-af60-42cf-bb44-b21207abf03e" class="">也有一些没有明确指明操作类型的字母，如<code>arraylength</code>指令，操作数只能是数组类型的对象。</p><p id="444ed36a-ecae-46eb-a7c9-284a8a3abc40" class="">如无条件跳转指令<code>goto</code>则是与数据类型无关的指令。</p><p id="816c6fea-41c5-4d65-aa17-c203fd93ee8d" class="">如果每一种与数据类型相关的指令都支持<code>Java</code>虚拟机所有运行时数据类型的话，那么指令的数量</p><p id="4edecdd2-2d56-4c7a-81c8-dcbfebd5f989" class="">恐怕会超过一字节能表示的数量范围了。因此只对特定的操作只提供有限的类型的指令去支持。</p><p id="cea6ff06-ab3e-4751-bef0-a50c6ac7b45b" class="">有一些单独的指令可以在必要的使用用来将一些不支持的类型转换为可被支持的类型。</p></blockquote><h1 id="2967d23b-bc77-458f-b938-1da498178791" class="">加载和存储指令</h1><blockquote id="02e9ae1a-bde9-47a0-bd88-c31ce4ab7410" class="block-color-gray_background">加载和存储指令用于将数据在栈帧中的局部变量表和操作数栈之间来回传输<ul id="6cfcf316-ebd7-4ebf-926f-6b62fb51f640" class="bulleted-list"><li style="list-style-type:disc">将一个局部变量架加载到操作数栈(<code>load</code>)</li></ul><pre id="48a1f21a-7dfd-4a7d-a05c-322854a934e0" class="code code-wrap"><code>iload、iload_&lt;n&gt;、lload、lload_&lt;n&gt;、fload、fload_&lt;n&gt;、dload、dload_&lt;n&gt;、aload、aload_&lt;n&gt;</code></pre><ul id="381f7873-a0b5-489f-bf34-e5cc02a89484" class="bulleted-list"><li style="list-style-type:disc">将一个数值从操作数栈存储到局部变量表(<code>store</code>)</li></ul><pre id="a9750476-8060-4979-a62a-afc36fb60823" class="code code-wrap"><code>istore、istore_&lt;n&gt;、lstore、lstore_&lt;n&gt;、fstore、fstore_&lt;n&gt;、dstore、dstore_&lt;n&gt;、astore、astore_&lt;n&gt;</code></pre><ul id="5f86d3ad-763f-4625-acab-6c0871a6cd5c" class="bulleted-list"><li style="list-style-type:disc">将一个常量加载到操作数栈（<code>push const</code>）</li></ul><pre id="8540b48d-5c68-4cfc-b580-6d3e46cf9c18" class="code code-wrap"><code>bipush、sipush、ldc、ldc_w、ldc2_w、aconst_null、iconst_m1、iconst_&lt;i&gt;、lconst_&lt;l&gt;、fconst_&lt;f&gt;、dconst_&lt;d&gt;</code></pre><ul id="4d78a670-456e-4121-830f-8d78b036f09d" class="bulleted-list"><li style="list-style-type:disc">扩充局部变量表的访问索引的指令</li></ul><pre id="74720389-6572-4c3f-a7f3-d6024b8f6711" class="code code-wrap"><code>wide</code></pre></blockquote><h1 id="2a416d6c-98e0-4b44-baf8-8ed7c8c7cf39" class="">运算指令</h1><blockquote id="ca7faa79-e8d5-4f5a-95e4-b174df49d526" class="block-color-gray_background">算数指令用于对操作数栈上的两个值进行某种特定运算，并将结果重新压栈。<ul id="1fd4d6cd-6daf-4b59-9917-41cfa4612f82" class="bulleted-list"><li style="list-style-type:disc">加法指令 <code>add</code></li></ul><pre id="8a966de1-a636-4a2f-9e41-fa0e31de882b" class="code code-wrap"><code>iadd、ladd、fadd、dadd</code></pre><ul id="b10565ac-c589-49e7-a05b-723fa284c6e1" class="bulleted-list"><li style="list-style-type:disc">减法指令 <code>sub</code></li></ul><pre id="27348dd7-45d4-4598-bdb1-6bab89c45a1f" class="code code-wrap"><code>isub、lsub、fsub、dsub</code></pre><ul id="c94f6f6d-0543-46e4-bb01-1b7e589da36d" class="bulleted-list"><li style="list-style-type:disc">乘法指令 <code>mul</code></li></ul><pre id="22b3617e-1afd-49cc-a161-9350cb2ba704" class="code code-wrap"><code>imul、lmul、fmul、dmul</code></pre><ul id="bd2791e9-cd17-442f-8b16-a29d0f75c4c5" class="bulleted-list"><li style="list-style-type:disc">除法指令 <code>div</code></li></ul><pre id="389294bf-839c-4d2d-99b3-c0f054e8a385" class="code code-wrap"><code>idiv、ldiv、fdiv、ddiv</code></pre><ul id="78a586cb-09df-465a-a785-4d2fa0aedb33" class="bulleted-list"><li style="list-style-type:disc">求余指令 <code>rem</code></li></ul><pre id="78cb9930-bf33-4eca-ab32-7bedc2ddca77" class="code code-wrap"><code>irem、lrem、frem、drem</code></pre><ul id="6c076c99-2577-463d-b0f8-88b2e43c80f8" class="bulleted-list"><li style="list-style-type:disc">取反指令 <code>neg</code></li></ul><pre id="fe6e1099-5a4e-4812-ab4a-dcbcabd8ab06" class="code code-wrap"><code>ineg、lneg、fneg、dneg</code></pre><ul id="fe867fe8-c67c-4fc9-878c-3b4eb065271b" class="bulleted-list"><li style="list-style-type:disc">位移指令 <code>sh</code></li></ul><pre id="e34c4bf6-8cc5-4170-9b6f-c6b20c096fa1" class="code code-wrap"><code>ishl、ishr、iushr、lshl、lshr、lushr</code></pre><ul id="4a87ee5e-0389-49a5-8958-39cce41a5a45" class="bulleted-list"><li style="list-style-type:disc">按位或指令 <code>or</code></li></ul><pre id="161e8308-a9f1-4588-a64f-f28d1aa883c8" class="code code-wrap"><code>ior、lor</code></pre><ul id="2a7c7b6e-ad72-4b6f-92de-ed40e050ca8d" class="bulleted-list"><li style="list-style-type:disc">按位与指令 <code>and</code> </li></ul><pre id="81f5e8fb-d49f-45e8-b6fa-c36b1a0f533c" class="code code-wrap"><code>iand、land</code></pre><ul id="a7f2e018-44a6-4924-a266-3bf686597806" class="bulleted-list"><li style="list-style-type:disc">按位异或指令 <code>xor</code></li></ul><pre id="9b7b8a6d-5ca2-47a5-abd6-581a776e3bfc" class="code code-wrap"><code>ixor、lxor</code></pre><ul id="5baa75b8-ab02-466e-acbf-e71d2475b2f2" class="bulleted-list"><li style="list-style-type:disc">局部变量自增指令 </li></ul><pre id="a4a5dffc-473a-4694-a97a-d240b22fd5cc" class="code code-wrap"><code>iinc</code></pre><ul id="72a20571-7c21-43c7-bada-7df0a1529ec8" class="bulleted-list"><li style="list-style-type:disc">比较指令 <code>cmp</code></li></ul><pre id="d95dca67-c1b0-46ad-9c47-46d086c00680" class="code code-wrap"><code>dcmpg、dcmpl、fcmpg、fcmpl、lcmpg</code></pre></blockquote><h1 id="2de955b6-0524-4bc1-9dfc-54d38c62d76c" class="">类型转换指令</h1><blockquote id="72f40517-c3d9-487c-b767-5202eab2f392" class="block-color-gray_background">类型转换指令可以将两种不同的数值类型相互转换，这些转换操作一般用于实现用户代码中的显示类型转换操作，或者用来处理字节码指令集中数据类型相关指令无法与数据类型一一对应的问题。<h3 id="e41e7e15-6086-458b-87af-2c20c178bf02" class=""><strong>转换规则</strong></h3><p id="0d288264-b91f-4d17-b771-06bb9666e5c3" class=""><strong>Java虚拟机直接支持小范围类型向大范围类型的安全转换，即宽化类型转换（</strong><strong><code>Widening Numeric Conversion</code></strong><strong>）</strong></p><ul id="56600bd1-3140-447a-9c71-e2a94537319c" class="bulleted-list"><li style="list-style-type:disc"><code>int</code>类型到<code>long</code>、<code>float</code>或者<code>double</code>类型</li></ul><ul id="932142d6-ef1a-4b1a-8ec7-74736d47d1f4" class="bulleted-list"><li style="list-style-type:disc"><code>long</code>类型到<code>float</code>或者<code>double</code>类型</li></ul><ul id="c96db481-7dbe-4a04-8b2f-e0e6a057dcd2" class="bulleted-list"><li style="list-style-type:disc"><code>float</code>类型到<code>double</code>类型</li></ul><p id="f5606d49-c19b-4007-ac4c-c0413a08cdeb" class=""><strong>窄化类型转换（</strong><strong><code>Narrowing Numeric Conversion</code></strong><strong>）必须显示使用转换指令来完成。</strong></p><pre id="9858c779-b9fe-4858-8d98-11b220feb695" class="code code-wrap"><code>i2b、i2c、i2s、l2i、f2i、f2l、d2i、d2l、d2f</code></pre><ul id="2280e735-0e0c-4639-9ef4-15a906fea3b3" class="bulleted-list"><li style="list-style-type:disc">在将<code>int</code>或<code>long</code>类型窄化转换为整数类型<code>T</code>的时候，转换过程仅仅是简单丢弃除最低位<code>N</code>字节以外的内容。<code>N</code>是类型<code>T</code>的数据类型长度，这将可能导致转换结果与输入值有不同的正负号。</li></ul><p id="63a9e89b-8241-4557-847e-e614af6fd44d" class=""><strong>Java虚拟机将一个浮点值窄化为整型的时候必须遵循一下的转换规则：</strong></p><ul id="3f77cc92-869c-4d4a-bbb4-d26ff7cded46" class="bulleted-list"><li style="list-style-type:disc">如果浮点值是<code>NaN</code>，那么转换结果就是<code>int</code>或<code>long</code>类型的0</li></ul><ul id="8e1c3303-67cc-4c17-8ec6-37522ffd5888" class="bulleted-list"><li style="list-style-type:disc">如果<code>v</code>在目标类型<code>T</code>（<code>int</code>或<code>long</code>）的表示范围之内，那转换结果就是<code>v</code>，否则将根据<code>v</code>的符号，转换为<code>T</code>所能表示的最大或最小正数。</li></ul><p id="7a5e5e19-33de-4776-8c9e-40568be921ec" class="">从<code>double</code>到<code>float</code>，如果转换结果的绝对值太小，无法用<code>float</code>表示，将返回<code>float</code>类型的正负零。如果转换结果的绝对值太大，无法用<code>float</code>表示，将返回<code>float</code>类型的正负无穷大。</p></blockquote><h1 id="1448d8e2-6717-4fd3-9423-0e459b77272b" class="">对象创建与访问指令</h1><blockquote id="f830d3fc-5d6e-413a-869a-f716334ab70d" class="block-color-gray_background">类实例和数组的创建和操作使用不同的指令。<ul id="31438bf0-311f-4b15-82f0-59f159e3d45d" class="bulleted-list"><li style="list-style-type:disc">创建类实例的指令</li></ul><pre id="c1e35af0-ce14-441c-a10d-376e76afd985" class="code code-wrap"><code>new</code></pre><ul id="fc1c8100-3614-49ba-86e6-b26a22cad2a0" class="bulleted-list"><li style="list-style-type:disc">创建数组的指令</li></ul><pre id="6705c474-500e-4091-b4a0-03f15ec41a82" class="code code-wrap"><code>newarray、anewarray、multianewarray</code></pre><ul id="6f2fb3ea-cc0f-4657-9fcf-595ba7d50d0e" class="bulleted-list"><li style="list-style-type:disc">访问类字段和实例字段</li></ul><pre id="db14fae9-b888-4ba6-a93c-901c9d6edf30" class="code code-wrap"><code>getfield、putfield、getstatic、putstatic</code></pre><ul id="acdf7ac4-af79-4dab-a8ad-30dc3f11a8c6" class="bulleted-list"><li style="list-style-type:disc">把一个数组元素加载到操作数栈的指令</li></ul><pre id="238d34d8-9291-4040-b237-9025518dcf72" class="code code-wrap"><code>baload、caload、saload、iaload、laload、faload、daload、aaload</code></pre><ul id="5d36e34f-97cd-4acc-b64d-5211761ebbc0" class="bulleted-list"><li style="list-style-type:disc">把一个操作数栈的值存到数组元素中的指令</li></ul><pre id="71e75dcb-e8c6-4c28-a350-212d7168fdba" class="code code-wrap"><code>bastore、castore、sastore、iastore、fastore、dastore、aastore</code></pre><ul id="3c038abb-e886-4aa2-8460-2318a070da06" class="bulleted-list"><li style="list-style-type:disc">取数组长度的指令</li></ul><pre id="036cd90a-b326-4120-b879-9583b3033000" class="code code-wrap"><code>arraylength</code></pre><ul id="30c6aebd-8893-4039-a4d6-3518ebf06d9a" class="bulleted-list"><li style="list-style-type:disc">检查类实例类型的指令</li></ul><pre id="084686ab-cccc-4831-81b3-d7499e833040" class="code code-wrap"><code>instanceof、checkcast</code></pre></blockquote><h1 id="9f73af52-bbf0-4fb2-a0dc-d381b009d6d3" class="">操作数栈管理指令</h1><blockquote id="9d4717d2-f701-4f22-a4b0-27adaa2b0d7c" class="">用于直接操作操作数栈的指令<ul id="50545226-88ec-44c2-a793-bc98e9227aae" class="bulleted-list"><li style="list-style-type:disc">将操作数栈的栈顶一个或两个元素出栈</li></ul><pre id="e49fecbe-8ca5-42a4-b63f-22dd206910c7" class="code code-wrap"><code>pop、pop2</code></pre><ul id="f10fdba0-7533-4954-9e1f-b29982412d53" class="bulleted-list"><li style="list-style-type:disc">复制栈顶一个或两个数值并重新压入栈顶</li></ul><pre id="0c8ef657-3449-456c-bef1-21ee048ccace" class="code code-wrap"><code>dup、dup2、dup_x1、dup2_x1、dup_x2、dup2_x2</code></pre><ul id="d0c18764-7419-4748-adaa-fa96cde57348" class="bulleted-list"><li style="list-style-type:disc">栈顶端的两个数值互换</li></ul><pre id="87ed29a9-a7f9-419f-a195-ff25d5091b54" class="code"><code>swap</code></pre></blockquote><h1 id="ce6b5b8c-b401-4b0e-9548-6ab263b49bcd" class="">控制转移指令</h1><blockquote id="b421c689-3b0c-421e-a460-3b224064ec06" class="">控制转移指令可以让虚拟机有条件或无条件地从指定位置指令的下一条指令继续执行程序。<ul id="b1049030-1125-4f7e-9327-345a715e6eed" class="bulleted-list"><li style="list-style-type:disc">条件分支</li></ul><pre id="b045562f-162b-45da-98ff-6f48cab970ec" class="code"><code>ifeq、iflt、ifle、ifne、ifgt、ifge、ifnull、ifnonnull、if_icmpeq、if_icmpne
+、if_icmplt、if_icmpgt、if_icmple、if_icmpge、if_acmpeq、if_acmpne</code></pre><ul id="48908e0c-26ed-4f92-9e14-0b7e4a7c0c4d" class="bulleted-list"><li style="list-style-type:disc">复合条件分支</li></ul><pre id="d7006367-dc82-4225-825f-de7cebf2269d" class="code"><code>tableswitch、lookupswitch</code></pre><ul id="7a027bc8-2779-4f9b-9b2e-66866b7e0783" class="bulleted-list"><li style="list-style-type:disc">无条件分支</li></ul><pre id="407e7638-571b-424e-b011-809b7a450523" class="code"><code>goto、goto_w、jsr、jsr_w、ret</code></pre></blockquote><h1 id="8eca650a-a9cf-4dda-98e5-66cf1b1bc61c" class=""><strong>方法调用和返回指令</strong></h1><blockquote id="bead2aeb-9f26-4aec-b7ba-d1d471d0d868" class="block-color-gray_background">方法调用指令：<ul id="3608a091-14ca-4e9c-839f-656212d76b26" class="bulleted-list"><li style="list-style-type:disc"><code>invokevirtual</code>指令<p id="8648db28-3a89-4ad5-a0c4-4e573fecbbca" class="">用于调用对象的实例方法</p></li></ul><ul id="c4a8bf79-ddf6-465a-918b-243fa704a2f7" class="bulleted-list"><li style="list-style-type:disc"><code>invokeinterface</code>指令<p id="42f75641-dd82-444c-ae7b-ce95d822b1c8" class="">用于调用接口方法，在运行时搜素一个实现了这个接口方法的对象，找出合适的方法进行调用</p></li></ul><ul id="977b4ca9-df99-4c94-ad5a-29063e3a9da9" class="bulleted-list"><li style="list-style-type:disc"><code>invokespecial</code>指令<p id="1d1788e8-336b-49bb-969f-54687295214a" class="">用于调用一些需要特殊处理的实例方法，包括实例初始化方法、私有方法和父类方法</p></li></ul><ul id="e20ba92c-ea34-46c9-b293-7df598cd7850" class="bulleted-list"><li style="list-style-type:disc"><code>invokestatic</code>指令<p id="1f9abc18-ef15-47df-9191-37e86ce5bb39" class="">用于调用类静态方法</p></li></ul><ul id="cf107cfd-419c-4b65-be66-605261756404" class="bulleted-list"><li style="list-style-type:disc"><code>invokedynamic</code>指令<p id="baffc1c5-c7c7-439b-a428-2f8897fa999a" class="">用于在运行时动态解析出调用点限定符所引用的方法，并执行该方法</p></li></ul><p id="a8750ab2-1745-43d9-9dab-2922f72e767b" class="">返回指令：</p><p id="8479b09a-6a14-4fff-9758-2176a4a81985" class="">方法返回指令是根据返回值的类型区分的，包括（<code>ireturn,  lreturn, freturn, dreturn, areturn, return</code>）</p></blockquote><h1 id="bc7da1c3-4820-405a-b742-e85d7d781c20" class=""><strong>同步指令</strong></h1><blockquote id="079f134a-ac30-4808-b4bd-c7036ec904f9" class="block-color-gray_background">Java虚拟机可以支持方法级的同步和方法内部一段指令序列的同步，这两种同步结构都是使用管程（<code>Monitor</code>，更常见的是直接称为“锁”）来实现的。<h3 id="e873e28b-afc3-43ce-94ff-53c1ab4d51f3" class=""><strong>方法级别的同步</strong></h3><p id="a40b9e8a-ca27-4e57-8b4d-7cdd94e414d7" class="">方法级的同步是隐式的，无须通过字节码指令来控制，虚拟机可以从方法常量池中的方法表结构中的<code>ACC_SYNCHRONIZED</code>访问标志得知一个方法是否被声明为同步方法。</p><p id="ae05c9fb-c9aa-495f-8c21-ac5d021f6164" class="">当方法调用时，调用指令将会检查方法的<code>ACC_SYNCHRONIZED</code>访问标志是否被设置，如果设置了，执行线程就要求先成功持有管程，然后才能执行方法，最后当方法完成时释放管程。</p><h3 id="eeb069dc-5470-4fa9-bce0-c3cbaad39be0" class=""><strong>同步一段指令序列</strong></h3><p id="0ccf23e7-05a2-4c1a-bfaf-a48da8779baf" class="">通常是使用<code>synchronized</code>语句块来表示，Java虚拟机的指令集中有<code>monitorenter</code>和<code>monitorexit</code>两条指令来支持<code>synchronized</code>关键字的语义。</p></blockquote><p id="1d2220ac-0833-4e0b-8c16-1fc657061a8e" class="">
+</p></div></article></body></html>

@@ -1,0 +1,669 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Understanding the JVM</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="97a24959-cf7b-4815-8e71-960376f5ee2b" class="page sans"><header><img class="page-cover-image" src="https://images.unsplash.com/photo-1622012665875-f4493dc101a5?ixlib=rb-1.2.1&amp;q=80&amp;cs=tinysrgb&amp;fm=jpg&amp;crop=entropy" style="object-position:center 61.309999999999995%"/><div class="page-header-icon page-header-icon-with-cover"><img class="icon" src="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/虚拟机.png"/></div><h1 class="page-title">Understanding the JVM</h1></header><div class="page-body"><h1 id="543b61bf-701e-4c8b-bc87-d22d75462cdc" class="">第一部分 走进Java</h1><hr id="4f15e12a-d64c-4e2b-a70d-22aa6d7487f2"/><blockquote id="dd9e330d-8d3e-4b98-a4a5-d9be6ff2b707" class="block-color-gray_background"><em><strong>    不断追求完美的程序。</strong></em></blockquote><figure id="1c26dc5e-4b7f-4890-a764-07a4162af821" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/走进Java%201c26dc5e4b7f4890a76407a4162af821.html">走进Java</a></figure><figure id="e579e0c9-fc4c-4c2a-a78b-6f4b676f8976" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/编译JDK%20e579e0c9fc4c4c2aa78b6f4b676f8976.html">编译JDK</a></figure><h1 id="a1c693f0-d8e1-4bb2-94fe-2e0d6b13ca38" class="">第二部分 自动内存管理</h1><hr id="9c9bd46e-a2f6-4c0d-a3d2-a68deaa61c3a"/><blockquote id="0ef8bd48-7dd0-4278-beca-5816f153671f" class="block-color-gray_background"><em><strong>    Java与C++之间有一堵内存动态分配和垃圾收集技术所围成的高墙，墙外面的人想进去，墙里面的人想出来。</strong></em></blockquote><h2 id="1f4c6031-d9a6-41e8-ad5a-ed121c84ce94" class=""><details open=""><summary>Java 内存区域与内存溢出异常</summary></details></h2><div class="indented"><figure id="0d127796-4659-4489-a196-75375fc61b9c" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/Java内存区域%200d12779646594489a19675375fc61b9c.html">Java内存区域</a></figure><figure id="ddf6557b-ee2b-4894-8fbf-d8a36fc4cacf" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/HotSpot虚拟机对象%20ddf6557bee2b48948fbfd8a36fc4cacf.html">HotSpot虚拟机对象</a></figure><figure id="f71e3198-5142-4931-bac6-60f2598da778" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/实战：Out%20Of%20Memory%20Error%20异常%20f71e319851424931bac660f2598da778.html">实战：Out Of Memory Error 异常</a></figure></div><h2 id="0d0a3c53-53f9-466f-8d3a-c0a840c1d76e" class=""><details open=""><summary>垃圾回收器与内存分配策略</summary></details></h2><div class="indented"><figure id="cf010613-6175-4f9b-adf1-c003c0f0a0a4" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/对象存活判断%20cf01061361754f9badf1c003c0f0a0a4.html">对象存活判断</a></figure><figure id="e35d93a9-57d0-43b8-a6c6-edc3a561e183" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/垃圾收集算法%20e35d93a957d043b8a6c6edc3a561e183.html">垃圾收集算法</a></figure><figure id="9975959d-9849-4aed-b577-d1cee28c0a55" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55.html">HotSpot的回收算法实现</a></figure><figure id="f5bae703-b092-4e90-9844-37fd8e2b4062" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062.html">经典垃圾收集器</a></figure><figure id="87eef471-07d2-4b07-b8c2-f8d1eb5d7a2c" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/低延迟垃圾收集器%2087eef47107d24b07b8c2f8d1eb5d7a2c.html">低延迟垃圾收集器</a></figure><figure id="6f1d3a98-64fd-4ae1-9d35-ea46baecf992" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/收集器的权衡%206f1d3a9864fd4ae19d35ea46baecf992.html">收集器的权衡</a></figure><figure id="b9ff7282-efdf-4485-9f15-bf3c68a50627" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/内存分配与回收策略%20b9ff7282efdf44859f15bf3c68a50627.html">内存分配与回收策略</a></figure></div><h2 id="faf03485-1020-412c-8fe5-7e300ac9667f" class=""><details open=""><summary>虚拟机性能监控、故障处理工具</summary></details></h2><div class="indented"><p id="22eaed9c-60b3-48d3-83f8-2a34642c3d78" class="">🔧 JConsole</p><figure id="dfd8561a-4cca-4ddc-90d2-caee537ae6a3" class="link-to-page"><a href="https://www.notion.so/Java-Tools-Reference-dfd8561a4cca4ddc90d2caee537ae6a3"><span class="icon">🛠️</span>Java Tools Reference</a></figure><figure id="f5c6db00-d01a-4d38-8913-f829f3fed9bf" class="link-to-page"><a href="https://www.notion.so/JDK-Mission-Control-8-f5c6db00d01a4d388913f829f3fed9bf"><img class="icon" src="../杂七杂八%20c22081b4fd29472587bf5bb5f45500b8/About%20Java%205751ca72d6ec48ca98420c3349859c5f/JDK%20Mission%20Control%208%20f5c6db00d01a4d388913f829f3fed9bf/3812141.webp"/>JDK Mission Control 8</a></figure><figure id="0d178854-917c-44ae-9d53-b3cb62634eea" class="link-to-page"><a href="https://www.notion.so/VisualVM-0d178854917c44ae9d53b3cb62634eea"><img class="icon" src="../杂七杂八%20c22081b4fd29472587bf5bb5f45500b8/About%20Java%205751ca72d6ec48ca98420c3349859c5f/VisualVM%200d178854917c44ae9d53b3cb62634eea/截屏2022-07-05_12.11.20.png"/>VisualVM</a></figure><figure id="19163f8a-a908-4d6b-bc31-2fcbe4037869" class="link-to-page"><a href="https://www.notion.so/Eclipse-Memory-Analyzer-MAT-19163f8aa9084d6bbc312fcbe4037869"><img class="icon" src="../杂七杂八%20c22081b4fd29472587bf5bb5f45500b8/About%20Java%205751ca72d6ec48ca98420c3349859c5f/Eclipse%20Memory%20Analyzer(MAT)%2019163f8aa9084d6bbc312fcbe4037869/截屏2022-07-05_18.16.58_拷贝.png"/>Eclipse Memory Analyzer(MAT)</a></figure><figure id="4252d028-8af3-4d8d-bd23-ad8a3bb570ce" class="link-to-page"><a href="https://www.notion.so/GC-Viewer-4252d0288af34d8dbd23ad8a3bb570ce"><img class="icon" src="../杂七杂八%20c22081b4fd29472587bf5bb5f45500b8/About%20Java%205751ca72d6ec48ca98420c3349859c5f/GC%20Viewer%204252d0288af34d8dbd23ad8a3bb570ce/1.png"/>GC Viewer</a></figure><figure id="5061e9c8-e4cd-4a89-aa1e-5343e8a33aef" class="link-to-page"><a href="https://www.notion.so/GC-Easy-5061e9c8e4cd4a89aa1e5343e8a33aef"><img class="icon" src="../杂七杂八%20c22081b4fd29472587bf5bb5f45500b8/About%20Java%205751ca72d6ec48ca98420c3349859c5f/GC%20Easy%205061e9c8e4cd4a89aa1e5343e8a33aef/2.png"/>GC Easy</a></figure><figure id="c05a2cc8-3c5b-4282-ba5d-05db2fbe3ff6" class="link-to-page"><a href="https://www.notion.so/BTrace-c05a2cc83c5b4282ba5d05db2fbe3ff6"><img class="icon" src="../杂七杂八%20c22081b4fd29472587bf5bb5f45500b8/About%20Java%205751ca72d6ec48ca98420c3349859c5f/BTrace%20c05a2cc83c5b4282ba5d05db2fbe3ff6/1.png"/>BTrace</a></figure></div><h2 id="614934c4-c69a-43dc-b5a6-4149de97c429" class=""><details open=""><summary>经典调优案例分析</summary></details></h2><div class="indented"><figure id="6c7eb61a-4ab9-4401-91fa-e721b83be02f" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/案例分析%206c7eb61a4ab9440191fae721b83be02f.html">案例分析</a></figure></div><h1 id="1aab2e8b-8847-4bc9-82aa-a27c644e9a06" class="">第三部分 虚拟机执行子系统</h1><hr id="2fc5f46f-ee6c-45ae-babf-74f879978075"/><blockquote id="927181d0-bbe2-4677-87ee-81cc822cba20" class="block-color-gray_background"><em><strong>    代码编译的结果从本地机器码转变为字节码，是存储格式发展的一小步，却是编程语言发展的一大步。</strong></em></blockquote><h2 id="9650361e-dd45-4b95-a3fe-e075cafd52ec" class=""><details open=""><summary>类文件结构</summary></details></h2><div class="indented"><figure id="65208223-d8d7-4c5a-b22f-f4ddc0005b0c" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/Class类文件的结构%2065208223d8d74c5ab22ff4ddc0005b0c.html">Class类文件的结构</a></figure><figure id="72abba22-ab1a-4200-b0bd-2bb564206a83" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/字节码指令%2072abba22ab1a4200b0bd2bb564206a83.html">字节码指令</a></figure><figure id="94022f4b-ec52-4ed4-a7bf-42dc559fe1fa" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/公有设计，私有实现%2094022f4bec524ed4a7bf42dc559fe1fa.html">公有设计，私有实现</a></figure></div><h2 id="61ebc0ac-5d75-47b4-8641-e61971b9f6d6" class=""><details open=""><summary>虚拟机类加载机制</summary></details></h2><div class="indented"><figure id="bec38aa1-5398-4b91-96c5-d16b702842f7" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/类加载时机%20bec38aa153984b9196c5d16b702842f7.html">类加载时机</a></figure><figure id="c8677300-7b9d-49c3-8644-f54d67b6b1d9" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/类加载过程%20c86773007b9d49c38644f54d67b6b1d9.html">类加载过程</a></figure><figure id="7d94899c-e9aa-4331-a144-bfcc5abe30d4" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/类加载器模型%207d94899ce9aa4331a144bfcc5abe30d4.html">类加载器模型</a></figure><figure id="e05ee8e4-08e2-4b00-94df-b3c169075ad7" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/Java模块化系统%20e05ee8e408e24b0094dfb3c169075ad7.html">Java模块化系统</a></figure></div><h2 id="5b2ef1d1-62ad-4ad8-8594-a7673ed7aa94" class=""><details open=""><summary>虚拟机字节码执行引擎</summary></details></h2><div class="indented"><figure id="f6322263-5946-4e3d-b97a-a6f3c7536321" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/运行时栈帧结构%20f632226359464e3db97aa6f3c7536321.html">运行时栈帧结构</a></figure><figure id="f6477028-ae4d-49bb-90d0-2922f881dc5a" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/方法调用%20f6477028ae4d49bb90d02922f881dc5a.html">方法调用</a></figure><figure id="f0916c69-f74b-45d0-9efd-e789836d67a9" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/动态类型语言支持%20f0916c69f74b45d09efde789836d67a9.html">动态类型语言支持</a></figure><figure id="4ae90ea8-30cc-4788-89cf-a2c8f739a99e" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/基于栈的字节码解释执行引擎%204ae90ea830cc478889cfa2c8f739a99e.html">基于栈的字节码解释执行引擎</a></figure><figure id="f7470770-15d3-4490-838d-2905bc1730a6" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/Java模块化系统%20f747077015d34490838d2905bc1730a6.html">Java模块化系统</a></figure></div><h2 id="dc72195b-f051-4fc2-95c9-f8d7267cb011" class=""><details open=""><summary>类加载及执行子系统的案例</summary></details></h2><div class="indented"><figure id="0ed8a405-b5cc-47aa-a9fa-4de9153b6686" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/Tomcat%200ed8a405b5cc47aaa9fa4de9153b6686.html">Tomcat</a></figure><figure id="c6fa8789-49bf-46d8-b0cc-6a84bc2018c0" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/OSGI%20c6fa878949bf46d8b0cc6a84bc2018c0.html">OSGI</a></figure><figure id="bf902350-bce6-4536-a296-3e01048e5bd7" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/%E5%AD%97%E8%8A%82%E7%A0%81%E7%94%9F%E6%88%90%E6%8A%80%E6%9C%AF&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%20bf902350bce64536a2963e01048e5bd7.html">字节码生成技术&amp;动态代理</a></figure><figure id="3bec2775-6760-4b42-babc-4f903c938d8a" class="link-to-page"><a href="Understanding%20the%20JVM%2097a24959cf7b48158e71960376f5ee2b/Backprot工具%203bec277567604b42babc4f903c938d8a.html">Backprot工具</a></figure></div></div></article></body></html>

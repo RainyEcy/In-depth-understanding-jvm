@@ -1,0 +1,941 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>HotSpot虚拟机对象</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="ddf6557b-ee2b-4894-8fbf-d8a36fc4cacf" class="page sans"><header><h1 class="page-title">HotSpot虚拟机对象</h1></header><div class="page-body"><nav id="72d06630-b6a2-45d2-b189-90f7869a2d2d" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#8982448c-eb9c-4815-a645-9f24bb75fb4e">对象的创建</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#1e511dec-c8bd-4545-bf83-a9879c434312">对象的内存布局</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#151184d9-6b65-4a9c-a460-2966919f788e">对象的访问定位</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#4e038ac8-1cb4-477a-8ee8-839a08342b20"><strong>涉及JVM参数</strong></a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#4862cdc3-1935-4ce9-ba23-9aae06e6cf2e">参考资料</a></div></nav><h1 id="8982448c-eb9c-4815-a645-9f24bb75fb4e" class="">对象的创建</h1><blockquote id="7225e515-a86b-4e98-ba28-1707ef86d755" class="block-color-gray_background">Java虚拟机遇到一条字节码New指令时：<ol type="1" id="924f21b2-6d7d-46c5-86c3-a8e4fc877a3a" class="numbered-list" start="1"><li>检查这个指令的参数是否能在常量池定位到一个类的符号引用，并且检查这个符号引用代表的类是否已被加载、解析和初始化，如果没有，先执行类加载过程。</li></ol><ol type="1" id="3c107bd3-5640-4096-8bea-e18270841c1b" class="numbered-list" start="2"><li>为新生对象分配内存，对象所需内存的大小在类加载完成后即可确定。<ol type="a" id="52dc634b-5b22-4997-a432-d19017b12c1a" class="numbered-list" start="1"><li><strong>指针碰撞 Bump The Point</strong>： 对内存绝对工整，使用过的内存放在一边，没使用过的放在一边，分界点放着一个指针当指示器 。基于（Mark - Compact）</li></ol><ol type="a" id="0562fb67-0abb-42d5-98f9-459cc5e48193" class="numbered-list" start="2"><li><strong>空闲列表 Free List</strong>：非规整空间，需要Free List 用来维护哪些内存被用过，哪些空闲。基于（Mark - Sweep）</li></ol></li></ol><ol type="1" id="8063fa08-fad5-49a9-b15f-3c57267150f5" class="numbered-list" start="3"><li><strong>并发创建对象安全性</strong>：<ol type="a" id="4a8f8e29-83d9-4f98-972a-4605768f0671" class="numbered-list" start="1"><li>虚拟机采用CAS配上失败重试来保证更新操作的原子性</li></ol><ol type="a" id="95f7ad39-e4bb-48b2-99b0-c03e8a6738c8" class="numbered-list" start="2"><li>本地线程分配缓冲（Thread Local Allocation Buffer, TLAB）,每个线程预先分配一块内存，当需要使用时，优先使用TLAB,当本地缓冲区用完了，分配新的缓冲区继续采用CAS方法来同步锁定 <code>-XX:+/-UseTLAB</code></li></ol></li></ol><ol type="1" id="9ba6de3c-a872-462c-af34-0c5504def065" class="numbered-list" start="4"><li>虚拟机将分配到的内存初始化为零值，如果使用TLAB，可以提前在TLAB分配时初始化。</li></ol><ol type="1" id="79f4174a-ab9a-46ee-8e38-a15ae0386c63" class="numbered-list" start="5"><li>在对象头（Object Header）中设置属于哪个类，如何找到类的元数据，哈希码，对象的GC分代年龄等信息。</li></ol><ol type="1" id="d9957705-1324-46e8-a448-fd6b26556296" class="numbered-list" start="6"><li>此时JVM方面，对象已经产生完毕，Java方面开始进行构造函数，将对象需要的其他资源和状态信息按照预定的意图构造好。</li></ol></blockquote><h1 id="1e511dec-c8bd-4545-bf83-a9879c434312" class="">对象的内存布局</h1><blockquote id="95d1ed30-55b4-4a93-8603-40fb3b3ae87d" class="block-color-gray_background">存储布局划分为三部分：<ul id="1dd90f64-0dec-4971-bb6a-61480ec6a144" class="bulleted-list"><li style="list-style-type:disc"><strong>对象头（Header） ：包含两类信息</strong><ul id="8163ff21-8c35-40c7-b79f-8bf46bd867d9" class="bulleted-list"><li style="list-style-type:circle">用于存储对象自身的运行数据 <p id="de6d0d47-06f7-452d-873a-42cd9d94c97c" class="">HashCode、GC分代年龄、锁状态标志、偏向线程ID、偏向时间戳等。</p><p id="10954564-05c7-46c6-8bfd-4cccc9f883b0" class="">数据长度32位32bit，64位64bit. - Mark Word 动态定义的数据结构。</p><ul id="cb49c757-1fbb-406b-99d8-6ee179847269" class="toggle"><li><details open=""><summary>代码实现 <code>markWord.hpp</code></summary><pre id="94e15e8b-8a81-48bc-9b99-f24799d3cd26" class="code"><code>/*
+ * Copyright (c) 1997, 2021, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ *
+ */
+
+#ifndef SHARE_OOPS_MARKWORD_HPP
+#define SHARE_OOPS_MARKWORD_HPP
+
+#include &quot;metaprogramming/integralConstant.hpp&quot;
+#include &quot;metaprogramming/primitiveConversions.hpp&quot;
+#include &quot;oops/oopsHierarchy.hpp&quot;
+#include &quot;runtime/globals.hpp&quot;
+
+// The markWord describes the header of an object.
+//
+// Bit-format of an object header (most significant first, big endian layout below):
+//
+//  32 bits:
+//  --------
+//             hash:25 ------------&gt;| age:4  unused_gap:1  lock:2 (normal object)
+//
+//  64 bits:
+//  --------
+//  unused:25 hash:31 --&gt;| unused_gap:1  age:4  unused_gap:1  lock:2 (normal object)
+//
+//  - hash contains the identity hash value: largest value is
+//    31 bits, see os::random().  Also, 64-bit vm&#x27;s require
+//    a hash value no bigger than 32 bits because they will not
+//    properly generate a mask larger than that: see library_call.cpp
+//
+//  - the two lock bits are used to describe three states: locked/unlocked and monitor.
+//
+//    [ptr             | 00]  locked             ptr points to real header on stack
+//    [header          | 01]  unlocked           regular object header
+//    [ptr             | 10]  monitor            inflated lock (header is wapped out)
+//    [ptr             | 11]  marked             used to mark an object
+//    [0 ............ 0| 00]  inflating          inflation in progress
+//
+//    We assume that stack/thread pointers have the lowest two bits cleared.
+//
+//  - INFLATING() is a distinguished markword value of all zeros that is
+//    used when inflating an existing stack-lock into an ObjectMonitor.
+//    See below for is_being_inflated() and INFLATING().
+
+class BasicLock;
+class ObjectMonitor;
+class JavaThread;
+class outputStream;
+
+class markWord {
+ private:
+  uintptr_t _value;
+
+ public:
+  explicit markWord(uintptr_t value) : _value(value) {}
+
+  markWord() = default;         // Doesn&#x27;t initialize _value.
+
+  // It is critical for performance that this class be trivially
+  // destructable, copyable, and assignable.
+  ~markWord() = default;
+  markWord(const markWord&amp;) = default;
+  markWord&amp; operator=(const markWord&amp;) = default;
+
+  static markWord from_pointer(void* ptr) {
+    return markWord((uintptr_t)ptr);
+  }
+  void* to_pointer() const {
+    return (void*)_value;
+  }
+
+  bool operator==(const markWord&amp; other) const {
+    return _value == other._value;
+  }
+  bool operator!=(const markWord&amp; other) const {
+    return !operator==(other);
+  }
+
+  // Conversion
+  uintptr_t value() const { return _value; }
+
+  // Constants
+  static const int age_bits                       = 4;
+  static const int lock_bits                      = 2;
+  static const int first_unused_gap_bits          = 1;
+  static const int max_hash_bits                  = BitsPerWord - age_bits - lock_bits - first_unused_gap_bits;
+  static const int hash_bits                      = max_hash_bits &gt; 31 ? 31 : max_hash_bits;
+  static const int second_unused_gap_bits         = LP64_ONLY(1) NOT_LP64(0);
+
+  static const int lock_shift                     = 0;
+  static const int age_shift                      = lock_bits + first_unused_gap_bits;
+  static const int hash_shift                     = age_shift + age_bits + second_unused_gap_bits;
+
+  static const uintptr_t lock_mask                = right_n_bits(lock_bits);
+  static const uintptr_t lock_mask_in_place       = lock_mask &lt;&lt; lock_shift;
+  static const uintptr_t age_mask                 = right_n_bits(age_bits);
+  static const uintptr_t age_mask_in_place        = age_mask &lt;&lt; age_shift;
+  static const uintptr_t hash_mask                = right_n_bits(hash_bits);
+  static const uintptr_t hash_mask_in_place       = hash_mask &lt;&lt; hash_shift;
+
+  static const uintptr_t locked_value             = 0;
+  static const uintptr_t unlocked_value           = 1;
+  static const uintptr_t monitor_value            = 2;
+  static const uintptr_t marked_value             = 3;
+
+  static const uintptr_t no_hash                  = 0 ;  // no hash value assigned
+  static const uintptr_t no_hash_in_place         = (address_word)no_hash &lt;&lt; hash_shift;
+  static const uintptr_t no_lock_in_place         = unlocked_value;
+
+  static const uint max_age                       = age_mask;
+
+  // Creates a markWord with all bits set to zero.
+  static markWord zero() { return markWord(uintptr_t(0)); }
+
+  // lock accessors (note that these assume lock_shift == 0)
+  bool is_locked()   const {
+    return (mask_bits(value(), lock_mask_in_place) != unlocked_value);
+  }
+  bool is_unlocked() const {
+    return (mask_bits(value(), lock_mask_in_place) == unlocked_value);
+  }
+  bool is_marked()   const {
+    return (mask_bits(value(), lock_mask_in_place) == marked_value);
+  }
+  bool is_neutral()  const {
+    return (mask_bits(value(), lock_mask_in_place) == unlocked_value);
+  }
+
+  // Special temporary state of the markWord while being inflated.
+  // Code that looks at mark outside a lock need to take this into account.
+  bool is_being_inflated() const { return (value() == 0); }
+
+  // Distinguished markword value - used when inflating over
+  // an existing stack-lock.  0 indicates the markword is &quot;BUSY&quot;.
+  // Lockword mutators that use a LD...CAS idiom should always
+  // check for and avoid overwriting a 0 value installed by some
+  // other thread.  (They should spin or block instead.  The 0 value
+  // is transient and *should* be short-lived).
+  static markWord INFLATING() { return zero(); }    // inflate-in-progress
+
+  // Should this header be preserved during GC?
+  bool must_be_preserved(const oopDesc* obj) const {
+    return (!is_unlocked() || !has_no_hash());
+  }
+
+  // WARNING: The following routines are used EXCLUSIVELY by
+  // synchronization functions. They are not really gc safe.
+  // They must get updated if markWord layout get changed.
+  markWord set_unlocked() const {
+    return markWord(value() | unlocked_value);
+  }
+  bool has_locker() const {
+    return ((value() &amp; lock_mask_in_place) == locked_value);
+  }
+  BasicLock* locker() const {
+    assert(has_locker(), &quot;check&quot;);
+    return (BasicLock*) value();
+  }
+  bool has_monitor() const {
+    return ((value() &amp; monitor_value) != 0);
+  }
+  ObjectMonitor* monitor() const {
+    assert(has_monitor(), &quot;check&quot;);
+    // Use xor instead of &amp;~ to provide one extra tag-bit check.
+    return (ObjectMonitor*) (value() ^ monitor_value);
+  }
+  bool has_displaced_mark_helper() const {
+    return ((value() &amp; unlocked_value) == 0);
+  }
+  markWord displaced_mark_helper() const;
+  void set_displaced_mark_helper(markWord m) const;
+  markWord copy_set_hash(intptr_t hash) const {
+    uintptr_t tmp = value() &amp; (~hash_mask_in_place);
+    tmp |= ((hash &amp; hash_mask) &lt;&lt; hash_shift);
+    return markWord(tmp);
+  }
+  // it is only used to be stored into BasicLock as the
+  // indicator that the lock is using heavyweight monitor
+  static markWord unused_mark() {
+    return markWord(marked_value);
+  }
+  // the following two functions create the markWord to be
+  // stored into object header, it encodes monitor info
+  static markWord encode(BasicLock* lock) {
+    return from_pointer(lock);
+  }
+  static markWord encode(ObjectMonitor* monitor) {
+    uintptr_t tmp = (uintptr_t) monitor;
+    return markWord(tmp | monitor_value);
+  }
+
+  // used to encode pointers during GC
+  markWord clear_lock_bits() { return markWord(value() &amp; ~lock_mask_in_place); }
+
+  // age operations
+  markWord set_marked()   { return markWord((value() &amp; ~lock_mask_in_place) | marked_value); }
+  markWord set_unmarked() { return markWord((value() &amp; ~lock_mask_in_place) | unlocked_value); }
+
+  uint     age()           const { return mask_bits(value() &gt;&gt; age_shift, age_mask); }
+  markWord set_age(uint v) const {
+    assert((v &amp; ~age_mask) == 0, &quot;shouldn&#x27;t overflow age field&quot;);
+    return markWord((value() &amp; ~age_mask_in_place) | ((v &amp; age_mask) &lt;&lt; age_shift));
+  }
+  markWord incr_age()      const { return age() == max_age ? markWord(_value) : set_age(age() + 1); }
+
+  // hash operations
+  intptr_t hash() const {
+    return mask_bits(value() &gt;&gt; hash_shift, hash_mask);
+  }
+
+  bool has_no_hash() const {
+    return hash() == no_hash;
+  }
+
+  // Prototype mark for initialization
+  static markWord prototype() {
+    return markWord( no_hash_in_place | no_lock_in_place );
+  }
+
+  // Debugging
+  void print_on(outputStream* st, bool print_monitor_info = true) const;
+
+  // Prepare address of oop for placement into mark
+  inline static markWord encode_pointer_as_mark(void* p) { return from_pointer(p).set_marked(); }
+
+  // Recover address of oop from encoded form used in mark
+  inline void* decode_pointer() { return (void*)clear_lock_bits().value(); }
+};
+
+// Support atomic operations.
+template&lt;&gt;
+struct PrimitiveConversions::Translate&lt;markWord&gt; : public TrueType {
+  typedef markWord Value;
+  typedef uintptr_t Decayed;
+
+  static Decayed decay(const Value&amp; x) { return x.value(); }
+  static Value recover(Decayed x) { return Value(x); }
+};
+
+#endif // SHARE_OOPS_MARKWORD_HPP</code></pre></details></li></ul><p id="171398a1-4c08-484b-999b-4d804ea84fa1" class="">ps: 32位机器 未锁定状态，25比特存放哈希码，4比特存放分代年龄，2比特存放锁标志位，1比特固定0。</p><table id="d30ce765-4fea-4adb-b651-39104615e1a9" class="simple-table"><thead class="simple-table-header"><tr id="0b81b962-d072-48da-87af-b823c485132b"><th id="FNaL" class="block-color-teal_background simple-table-header" style="width:256.6640625px">存储内容</th><th id="g]J}" class="block-color-teal_background simple-table-header" style="width:140.6640625px">标志位</th><th id="Lgu]" class="block-color-teal_background simple-table-header" style="width:201.66666666666666px">状态</th></tr></thead><tbody><tr id="88a17e15-f52c-471e-a9f3-d840858ef35c"><td id="FNaL" class="" style="width:256.6640625px">对象哈希、分代年龄</td><td id="g]J}" class="" style="width:140.6640625px">01</td><td id="Lgu]" class="" style="width:201.66666666666666px">未锁定</td></tr><tr id="93877d5b-99ee-45dc-9c1f-a37d30ab8559"><td id="FNaL" class="" style="width:256.6640625px">指向锁记录的指针</td><td id="g]J}" class="" style="width:140.6640625px">00</td><td id="Lgu]" class="" style="width:201.66666666666666px">轻量级锁定</td></tr><tr id="8cd1a4a0-1e22-47a1-822e-5fd25c26fb10"><td id="FNaL" class="" style="width:256.6640625px">指向重量级锁的指针</td><td id="g]J}" class="" style="width:140.6640625px">10</td><td id="Lgu]" class="" style="width:201.66666666666666px">膨胀（重量级锁定）</td></tr><tr id="1f518727-632c-496e-8710-fe69e7d9384f"><td id="FNaL" class="" style="width:256.6640625px">空，无需记录信息</td><td id="g]J}" class="" style="width:140.6640625px">11</td><td id="Lgu]" class="" style="width:201.66666666666666px">GC标记</td></tr><tr id="6e56374e-d0e9-4abc-b557-5b95134f7fba"><td id="FNaL" class="" style="width:256.6640625px">偏向线程id、偏向时间戳、分代年龄</td><td id="g]J}" class="" style="width:140.6640625px">01</td><td id="Lgu]" class="" style="width:201.66666666666666px">可偏向</td></tr></tbody></table></li></ul><ul id="4d702afb-4f83-4d39-b084-e49c8f6309e7" class="bulleted-list"><li style="list-style-type:circle">对象的类型指针<p id="d923d98a-51d7-4469-a9dc-0767b115e82c" class="">指向类型元数据的指针或者句柄，通过这个指针确定是哪个类的实例。</p><p id="d7632628-aee9-4d7a-ac32-1b188938d879" class="">如果是数组，还需要存储长度信息等。</p></li></ul></li></ul><ul id="94632a87-6e71-404d-9baa-0302baee758d" class="bulleted-list"><li style="list-style-type:disc"><strong>实例数据（Instance Data）</strong><p id="84e45cd5-4f02-4075-a245-f14ded64ad37" class="">对象真正存储的有效信息，各种类型的字段内容。</p><p id="b9b251bf-ceb7-4692-8b47-7613cce39f73" class="">存储顺序</p><ul id="1570ae0a-8726-4319-9632-acd0f8ae702e" class="bulleted-list"><li style="list-style-type:circle">受到虚拟机分配策略参数<code>-XX:FileldsAllocationStyle</code>和Java源码中定义顺序的影响。</li></ul><ul id="c2ff5b9c-5f42-4d9f-9aa7-9ac8ceeb33cf" class="bulleted-list"><li style="list-style-type:circle">HotSpot默认顺序<code>longs/doubles, ints, shorts, chars, bytes\booleans, oops(Ordinary Object Pointers, OOPs).</code></li></ul><ul id="d177a8c8-d325-42e8-82aa-6ed5ff887b25" class="bulleted-list"><li style="list-style-type:circle">相同宽度总是被分配到一起存放，满足这个的前提下，优先存放父类定义的变量。</li></ul><ul id="21849bc9-4ee1-4787-b52e-541f260dc158" class="bulleted-list"><li style="list-style-type:circle">如果定义了<code>-XX:+CompactFields</code> ，子类中较窄的变量允许插入在父类变量的空隙中。</li></ul></li></ul><ul id="32d4ef16-d886-4ac9-bf6b-e4ab4cdca5b2" class="bulleted-list"><li style="list-style-type:disc"><strong>对其填充（Padding）</strong><p id="c97adb86-f449-461a-9480-d6d1f32fb2b4" class="">非必然存在，仅是占位符作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，换句话说就是对象的大小必须是8字节的整数倍。</p></li></ul></blockquote><h1 id="151184d9-6b65-4a9c-a460-2966919f788e" class="">对象的访问定位</h1><p id="d4cb280a-8761-4b8d-86a6-494eeb28ca39" class="">
+</p><blockquote id="0676c836-2542-46a4-a3e1-7fe1f842a542" class="block-color-gray_background">主流的访问方式主要有句柄和直接指针：<ul id="961dc9b8-e267-417a-b986-4b656ba1f754" class="bulleted-list"><li style="list-style-type:disc"><strong>句柄访问 ：</strong><figure id="4bc3d2a6-0981-45c4-b89b-aa33cb0a3a41" class="image"><a href="HotSpot虚拟机对象%20ddf6557bee2b48948fbfd8a36fc4cacf/123.png"><img style="width:1686px" src="HotSpot虚拟机对象%20ddf6557bee2b48948fbfd8a36fc4cacf/123.png"/></a></figure><p id="bbc6e9ce-df71-44e9-bf57-6bdc88a20783" class="">Java堆可能划分出一块内存作为句柄池，reference中存储的就是对象的句柄地址，句柄中包含了对象实例数据（Java堆）和类型数据（元空间）各自的地址信息。</p></li></ul><ul id="4617ee0b-b74f-4dc0-9d70-ae1b5cf052ed" class="bulleted-list"><li style="list-style-type:disc"><strong>直接指针访问：</strong><figure id="98870c94-b8d9-4bda-b803-745291c38579" class="image"><a href="HotSpot虚拟机对象%20ddf6557bee2b48948fbfd8a36fc4cacf/234.png"><img style="width:1707px" src="HotSpot虚拟机对象%20ddf6557bee2b48948fbfd8a36fc4cacf/234.png"/></a></figure><p id="463285b7-0cff-4b45-8a96-2901d571e73a" class="">reference中直接存储Java堆中对象地址，对象地址（Java堆）中存放了对象实例数据和到对象类型数据的指针（指向元空间的类型数据）</p></li></ul></blockquote><p id="d7714efd-3a9b-4f17-aea0-88ddd811430c" class="">
+</p><h1 id="4e038ac8-1cb4-477a-8ee8-839a08342b20" class=""><strong>涉及JVM参数</strong></h1><ul id="339172bd-1772-4690-8a4f-f99d825f552e" class="bulleted-list"><li style="list-style-type:disc"><code>-</code><code><strong>XX:+UseCompressedOops</strong></code><strong>（JDK 8下默认为启用）</strong></li></ul><blockquote id="41fda9c3-2de1-4669-b4d4-819cf3eb4efc" class="block-color-gray_background">UseCompressedOops
+ Use 32-bit object references in 64-bit VM. lp64_product means flag is always constant in 32 bit VM
+ 在64位系统中使用32位系统下引用的大小，也就是说，在64系统下回压缩普通对象的指针大小以节约内存占用的大小。</blockquote><ul id="c86a9b0d-2230-4f6e-bb47-f7f4b8cbca9e" class="bulleted-list"><li style="list-style-type:disc"><code><strong>-XX:+CompactFields</strong></code><strong>（JDK 8下默认为启用）</strong></li></ul><blockquote id="d09098dd-e496-435d-b941-ac95419f831a" class="block-color-gray_background">CompactFields
+ Allocate nonstatic fields in gaps between previous fields
+ 分配一个非static的字段在前面字段缝隙中。这么做也是为了提高内存的利用率。</blockquote><ul id="54be6b0e-0d65-4854-b7c8-638bd8b026b0" class="bulleted-list"><li style="list-style-type:disc"><code><strong>-XX:FieldsAllocationStyle=1 </strong></code><strong>（JDK 8下默认值为‘1’）</strong></li></ul><blockquote id="f074861f-1388-4e83-ac94-33fea0a7474c" class="block-color-gray_background">FieldsAllocationStyle
+ 0 - type based with oops first, 1 - with oops last, 2 - oops in super and sub classes are together
+ 实例对象中有效信息的存储顺序：
+ 0：先放入oops（普通对象引用指针），然后在放入基本变量类型（顺序：longs/doubles、ints、shorts/chars、bytes/booleans）
+ 1：先放入基本变量类型（顺序：longs/doubles、ints、shorts/chars、bytes/booleans），然后放入oops（普通对象引用指针）
+ 2：超类oops和子类基本变量类型交叉存储</blockquote><p id="07c5e8bf-7c1f-4edc-963d-4c14c0f23f41" class="">
+</p><hr id="6b4a17eb-79ff-4d38-b645-69f0c446d0e8"/><h1 id="4862cdc3-1935-4ce9-ba23-9aae06e6cf2e" class="">参考资料</h1><ul id="dc09a29a-b5d9-4610-88d6-1a8982e95409" class="bulleted-list"><li style="list-style-type:disc">《深入理解Java虚拟机》</li></ul><ul id="283c3d7b-ff21-424e-9159-8b269e8c7626" class="bulleted-list"><li style="list-style-type:disc"><strong>Classmexer</strong>是一个简单的 Java 内存检测代理<p id="3b5b0273-c826-42bb-be24-5fdd0454271b" class="block-color-red">todo todoJvm Classmexer Java 内存检测代理</p><figure id="03a57ad9-442b-46de-9d01-59f81dffaaf9"><a href="https://www.javamex.com/classmexer/" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">Classmexer agent</div><div class="bookmark-description">Classmexer is a simple Java instrumentation agent that provides some convenience calls for measuring the memory usage of Java objects from within an application.</div></div><div class="bookmark-href">https://www.javamex.com/classmexer/</div></div></a><figcaption><strong>Classmexer</strong>是一个简单的 Java 检测代理，它提供了一些方便的调用来测量应用程序中 Java 对象的内存使用情况。它目前在com.javamex.classmexer包中提供来自MemoryUtil类</figcaption></figure></li></ul><ul id="be0bb005-900f-48b9-9b2a-199967dae705" class="bulleted-list"><li style="list-style-type:disc">对象使用内存量计算方法<figure id="09b84f22-233d-4eae-8ef7-f28ef945e1e1"><a href="https://www.javamex.com/tutorials/memory/object_memory_usage.shtml" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">How to calculate the memory usage of Java objects</div><div class="bookmark-description">As well as knowing the memory usage of common Java objects such as strings, dates, HashMaps etc, it is sometimes useful to be able to calculate the memory usage of arbitrary objects, given the fields and references they contain.</div></div><div class="bookmark-href">https://www.javamex.com/tutorials/memory/object_memory_usage.shtml</div></div></a><figcaption>对象使用内存量计算方法</figcaption></figure></li></ul><ul id="a018ada6-8141-4e85-86e7-9166c5492622" class="bulleted-list"><li style="list-style-type:disc">对象内存布局&amp;实例分析代码<figure id="5ea5ec5d-af94-4cef-846a-e05f7c3c709a"><a href="https://cloud.tencent.com/developer/article/1152657" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">JVM中 对象的内存布局 以及 实例分析</div><div class="bookmark-description">在 HotSpot 虚拟机中，对象在内存中存储的布局可以分为3块区域： ① 对象头（Header） ② 实例数据（Instance Data） ③ 对齐填充 （Padding） HotSpot 虚拟机的对象头包括两部分信息：Mark Word 和 类型指针；如果是数组对象的话，还有第三部分（option）信息：数组长度 Mark Word 这部分数据的长度在32位和64位的虚拟机（未开启压缩指针）中分别为32bit 和64bit。Mark Word用于存储对象自身的运行时数据，如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等。 对象头信息是与对象定义的数据无关的额外存储成本，考虑到虚拟机的空间效率，Mark Word被设计成一个非固定的数据结构以便在极小的空间内存存储尽量多的信息，它会根据对象的状态复用自己的存储空间。 ?标志位&quot;01&quot;就被复用了，根据不同的状态：&quot;未锁定&quot; or &quot;可偏向&quot; 来确定&quot;01&quot;存储所表示的内容。 类型指针（Class Pointer） 是对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例。 数组长度（Length）[option] 如果对象时一个Java数组，那在对象头中还必须有一块用于记录数组长度的数据。因为虚拟机可以通过普通Java对象的元数据信息确定Java对象的大小，但是从数组的元数据中无法确定数组的大小。 实例数据（Instance Data） 实例数据部分是对象真正存储的有效信息，也是在程序代码中所定义的各种类型的字段内容，无论是从父类继承下来的，还是在子类中定义的，都需要记录起来。 HotSpot虚拟机默认的分配策略为longs/doubles、ints、shorts/chars、bytes/booleans、oops（Ordinary Object Pointers），从分配策略中可以看出，相同宽度的字段总是被分配到一起。在满足这个前提条件的情况下，在父类中定义的变量会出现在子类之前。如果CompactFields参数值为true（默认为true），那子类之中较窄的变量也可能会插入到父类变量的空隙之中。 对齐填充 （Padding） 对齐填充并不是必然存在的，也没有特别的含义，它仅仅起着占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，换句话说就是对象的大小必须是8字节的整数倍。 上面我们已经对对象在内存的布局有了一点你的了解，接下来我们来看看对象占用内存的大小。也就是对象内存结构的每个部分分别占用多少的内存。 对象头 普通对象占用内存情况： 数组对象占用内存情况： 实例数据 环境 系统：macOS 10.12.5 JDK：jdk1.8.0_144 涉及JVM参数 -XX:+UseCompressedOops（JDK 8下默认为启用） UseCompressedOops Use 32-bit object references in 64-bit VM.</div></div><div class="bookmark-href">https://cloud.tencent.com/developer/article/1152657</div></div><img src="https://ask.qcloudimg.com/raw/yehe-fbd3d4418/ywbcx8ro1u.jpg?imageView2/2/w/516" class="bookmark-image"/></a><figcaption>对象内存布局&amp;实例分析代码</figcaption></figure></li></ul><p id="f890f7f0-4d82-4be6-bec7-0f8c60a86241" class="">
+</p><p id="1ba17009-9dbb-4014-8208-4241b0bef486" class="">
+</p></div></article></body></html>

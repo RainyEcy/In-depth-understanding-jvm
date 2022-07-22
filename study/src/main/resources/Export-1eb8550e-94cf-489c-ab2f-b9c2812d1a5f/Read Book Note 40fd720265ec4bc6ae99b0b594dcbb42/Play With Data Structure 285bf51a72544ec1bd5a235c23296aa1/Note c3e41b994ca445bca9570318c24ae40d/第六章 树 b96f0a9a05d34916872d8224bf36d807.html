@@ -1,0 +1,712 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>第六章 树</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="b96f0a9a-05d3-4916-872d-8224bf36d807" class="page sans"><header><h1 class="page-title">第六章 树</h1><table class="properties"><tbody><tr class="property-row property-row-date"><th><span class="icon property-icon"><svg viewBox="0 0 14 14" style="width:14px;height:14px;display:block;fill:rgba(55, 53, 47, 0.45);flex-shrink:0;-webkit-backface-visibility:hidden" class="typesDate"><path d="M10.8889,5.5 L3.11111,5.5 L3.11111,7.05556 L10.8889,7.05556 L10.8889,5.5 Z M12.4444,1.05556 L11.6667,1.05556 L11.6667,0 L10.1111,0 L10.1111,1.05556 L3.88889,1.05556 L3.88889,0 L2.33333,0 L2.33333,1.05556 L1.55556,1.05556 C0.692222,1.05556 0.00777777,1.75556 0.00777777,2.61111 L0,12.5 C0,13.3556 0.692222,14 1.55556,14 L12.4444,14 C13.3,14 14,13.3556 14,12.5 L14,2.61111 C14,1.75556 13.3,1.05556 12.4444,1.05556 Z M12.4444,12.5 L1.55556,12.5 L1.55556,3.94444 L12.4444,3.94444 L12.4444,12.5 Z M8.55556,8.61111 L3.11111,8.61111 L3.11111,10.1667 L8.55556,10.1667 L8.55556,8.61111 Z"></path></svg></span>Date</th><td><time>@June 22, 2022</time></td></tr><tr class="property-row property-row-multi_select"><th><span class="icon property-icon"><svg viewBox="0 0 14 14" style="width:14px;height:14px;display:block;fill:rgba(55, 53, 47, 0.45);flex-shrink:0;-webkit-backface-visibility:hidden" class="typesMultipleSelect"><path d="M4,3 C4,2.447715 4.447715,2 5,2 L12,2 C12.5523,2 13,2.447716 13,3 C13,3.55228 12.5523,4 12,4 L5,4 C4.447715,4 4,3.55228 4,3 Z M4,7 C4,6.447715 4.447715,6 5,6 L12,6 C12.5523,6 13,6.447716 13,7 C13,7.55228 12.5523,8 12,8 L5,8 C4.447715,8 4,7.55228 4,7 Z M4,11 C4,10.447715 4.447715,10 5,10 L12,10 C12.5523,10 13,10.447716 13,11 C13,11.55228 12.5523,12 12,12 L5,12 C4.447715,12 4,11.55228 4,11 Z M2,4 C1.44771525,4 1,3.55228475 1,3 C1,2.44771525 1.44771525,2 2,2 C2.55228475,2 3,2.44771525 3,3 C3,3.55228475 2.55228475,4 2,4 Z M2,8 C1.44771525,8 1,7.55228475 1,7 C1,6.44771525 1.44771525,6 2,6 C2.55228475,6 3,6.44771525 3,7 C3,7.55228475 2.55228475,8 2,8 Z M2,12 C1.44771525,12 1,11.5522847 1,11 C1,10.4477153 1.44771525,10 2,10 C2.55228475,10 3,10.4477153 3,11 C3,11.5522847 2.55228475,12 2,12 Z"></path></svg></span>Tags</th><td><span class="selected-value select-value-color-pink">整理笔记</span></td></tr><tr class="property-row property-row-text"><th><span class="icon property-icon"><svg viewBox="0 0 14 14" style="width:14px;height:14px;display:block;fill:rgba(55, 53, 47, 0.45);flex-shrink:0;-webkit-backface-visibility:hidden" class="typesText"><path d="M7,4.56818 C7,4.29204 6.77614,4.06818 6.5,4.06818 L0.5,4.06818 C0.223858,4.06818 0,4.29204 0,4.56818 L0,5.61364 C0,5.88978 0.223858,6.11364 0.5,6.11364 L6.5,6.11364 C6.77614,6.11364 7,5.88978 7,5.61364 L7,4.56818 Z M0.5,1 C0.223858,1 0,1.223858 0,1.5 L0,2.54545 C0,2.8216 0.223858,3.04545 0.5,3.04545 L12.5,3.04545 C12.7761,3.04545 13,2.8216 13,2.54545 L13,1.5 C13,1.223858 12.7761,1 12.5,1 L0.5,1 Z M0,8.68182 C0,8.95796 0.223858,9.18182 0.5,9.18182 L11.5,9.18182 C11.7761,9.18182 12,8.95796 12,8.68182 L12,7.63636 C12,7.36022 11.7761,7.13636 11.5,7.13636 L0.5,7.13636 C0.223858,7.13636 0,7.36022 0,7.63636 L0,8.68182 Z M0,11.75 C0,12.0261 0.223858,12.25 0.5,12.25 L9.5,12.25 C9.77614,12.25 10,12.0261 10,11.75 L10,10.70455 C10,10.4284 9.77614,10.20455 9.5,10.20455 L0.5,10.20455 C0.223858,10.20455 0,10.4284 0,10.70455 L0,11.75 Z"></path></svg></span></th><td></td></tr></tbody></table></header><div class="page-body"><figure id="fa0d64f0-d53b-4659-a377-3e9ccd19649d" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-29_16.10.02.png"><img style="width:432px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-29_16.10.02.png"/></a></figure><nav id="bc6fa9f8-2f0c-48ed-bdd9-027eac972c2f" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#975ca0ad-46bd-4eca-b32f-4883d7d8fde2">六 树</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#6f27601e-090c-459f-96a5-9740fe855a85">6.1 树的定义与概念</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#5670fbad-f064-4c04-9f70-5ed57796c28d">6.1.1 树的定义</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#2eaf053c-be32-4f95-9778-ae57ea822cbf">6.1.2 结点分类</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#a44f8b2a-985a-4b90-aacf-fd8735d82168">6.1.3 结点间关系</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#a6d44e8c-e7c0-4853-8c7d-ffab1dc42c9c">6.1.4 层次&amp;深度&amp;森林</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#9f084328-9f7f-4f9d-97dd-b9b25a75ff00">6.1.5 线性表与树的结构对比</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#18aad09d-1ce8-46eb-b283-ccad9e8899c2">6.2 树的抽象数据类型</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#1a0360db-2b6a-4bba-a2ff-fa85340f608d">6.3 树的存储结构</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#b1266b88-8bd6-4f10-9b8f-52c1870333ec">6.3.1 双亲表示法</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#837e6077-3fb4-485c-bb0c-573ec1ae1266">6.3.2 孩子表示法</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#bc039e89-00e2-44dc-8615-b3ac265c4631">6.3.3 孩子兄弟表示法</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#392c0c65-7d3b-4cd3-8eda-2704e7883dfc">6.4 二叉树</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#fea1e398-1b8f-4807-bd32-5f0f7ffee044">6.4.1 二叉树的定义</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#a3513fee-6937-4801-be4c-6bca06c5ef29">6.4.2 二叉树的特点</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#2667ed8a-0858-466d-ae8c-cfc507350c9c">6.4.3 特殊二叉树</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#804853d3-619e-4518-86f2-7bf2aa1a327b">6.4.4 二叉树的性质 ⭐️⭐️⭐️⭐️⭐️</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#1feae720-3ad5-445d-aefe-1ba68a17a433">6.4.5 二叉树的存储结构</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#8968f5c5-8e5c-4dcf-9ef7-6f03b08410e0">6.4.6 二叉树的遍历</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#2c3155c6-24f2-4ee7-8640-53eebc7ef992">6.4.7 线索二叉树</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#be608a49-7685-4b1f-b4c3-f4a6d4e12284">6.4.8 树，森林与二叉树的转换</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#16a2fe51-172d-41ac-a49a-6c138310cf61">6.4.8 赫夫曼树及其应用</a></div></nav><h1 id="975ca0ad-46bd-4eca-b32f-4883d7d8fde2" class="">六 树</h1><h2 id="6f27601e-090c-459f-96a5-9740fe855a85" class="">6.1 树的定义与概念</h2><h3 id="5670fbad-f064-4c04-9f70-5ed57796c28d" class="">6.1.1 树的定义</h3><div id="190065d2-562a-41f8-a744-96526a783c05" class="column-list"><div id="7381e384-8cbd-47d9-be8e-31c991b77c68" style="width:56.25%" class="column"><blockquote id="469d40b1-a4f3-4b11-9198-24ff344bc721" class="block-color-gray_background"><em><strong>树（TREE）</strong></em> 使n(n≥0) 个结点的有限集，n=0时称为空树。在任意一颗非空树中：<ol type="1" id="3fb204ba-d726-425b-8986-ca064c2f5cee" class="numbered-list" start="1"><li>有且只有一个特定的称为根（Root）的结点；</li></ol><ol type="1" id="92c39b9d-f270-4591-8be9-b739fcb51351" class="numbered-list" start="2"><li>当n&gt;1时，其余结点可分为m(m&gt;0)个不相交的有限集T1,T2……Tn，其中每一个集合本身又是一棵树，并且称为根的子树（SubTree）。</li></ol></blockquote></div><div id="15be58e7-7b14-4299-93f6-09e36f2b2b30" style="width:43.75%" class="column"><figure id="e4a404fb-5a3a-4784-a9f3-cfd64bc120cb" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.44.23.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.44.23.png"/></a></figure></div></div><h3 id="2eaf053c-be32-4f95-9778-ae57ea822cbf" class="">6.1.2 结点分类</h3><div id="6f23e94d-aa64-4fbc-9899-8a71dc7aa162" class="column-list"><div id="857154bc-31e9-4bcb-a1ba-4a1b5361f20e" style="width:56.25%" class="column"><blockquote id="af43ae40-92b2-4e67-8d31-429662d1f5a3" class="block-color-gray_background">结点拥有的子树数量称为<em><strong>结点的度（Degree）</strong></em>。<p id="a1726b14-db83-4f22-a07b-56e85ee8e952" class="">度为0的结点称为<em><strong>叶结点（Leaf）</strong></em>或终端结点；</p><p id="91ac4dd3-6efd-416f-9020-a2c976796f78" class="">度不为0的结点称为非终端结点或<em><strong>分支结点</strong></em>。</p><p id="20cf7b1c-a169-4d24-8745-21ce7f3c5ec0" class="">除根节点之外，分支结点也称为内部结点。<strong><em>树的度</em></strong>是树内各结点的度的最大值。</p></blockquote></div><div id="64b3eacb-c254-49a3-b3b0-d6a1b6d56ce6" style="width:43.75000000000001%" class="column"><figure id="ba61313f-4033-488d-88cd-0b29898d6466" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.45.35.png"><img style="width:336px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.45.35.png"/></a></figure></div></div><h3 id="a44f8b2a-985a-4b90-aacf-fd8735d82168" class="">6.1.3 结点间关系</h3><div id="12e7103f-ac5e-451a-82b5-bed5d22b8e4b" class="column-list"><div id="91cd168d-8aef-4d88-b6f1-3088f8248499" style="width:56.25%" class="column"><blockquote id="11187f99-39d3-45e1-8194-dd50a23e613b" class="block-color-gray_background">结点的子树的根称为该结点的<em><strong>孩子（Child）</strong></em>，相应地，该结点称为孩子的<em><strong>双亲（Parent）</strong></em>。<p id="3dc90161-3ee4-41ef-b298-453f80ca8509" class="">同一个双亲的孩子之间互称<em><strong>兄弟（Sibling）</strong></em>。</p><p id="3df740f3-0b47-41da-8923-0ce4358c0cf6" class="">结点的<em><strong>祖先 </strong></em>是从根到该结点所经分支上的所有结点。</p><p id="7f7b4589-7044-4618-b85d-8245b79080f2" class="">以某结点为根的子树中的任一结点都称为该结点的<em><strong>子孙 </strong></em>。</p></blockquote></div><div id="38126957-382a-4431-ad54-14e6e418a597" style="width:43.74999999999999%" class="column"><figure id="64f328f3-c892-4e27-ab53-282bf6c259cc" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.46.48.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.46.48.png"/></a></figure></div></div><h3 id="a6d44e8c-e7c0-4853-8c7d-ffab1dc42c9c" class="">6.1.4 层次&amp;深度&amp;森林</h3><div id="1c38698c-232a-4efa-8c00-1924125fb091" class="column-list"><div id="3d40ce11-c334-44c4-a903-bbaa9c00dfba" style="width:56.25%" class="column"><blockquote id="ddf166fc-5503-4027-bcc6-aaf70fb6f923" class="block-color-gray_background"><em><strong>结点层次（Level）</strong></em>从根开始定义，根为第一层，根的孩子为第二层。<p id="a3a0b7e7-9409-43dc-802d-074c1703e76b" class="">其双亲在同一层的结点互为<em><strong>堂兄弟。</strong></em></p><p id="18e3bb2b-b6a8-4761-b521-abe8a3a5cefb" class="">树中结点的最大层次称为<em><strong>树的深度（Depth）或高度。</strong></em></p><p id="43cbf34f-cf23-4ef7-b3a2-abf697327e2e" class=""><em><strong>森林（Forest）</strong></em>是m（m≥0）颗互不相交的树的集合。</p></blockquote></div><div id="a439fd37-1e37-422c-a899-e624d22a1882" style="width:43.75%" class="column"><figure id="70b2c2c3-4ac1-4427-91c0-d79863344fc1" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.45.57.png"><img style="width:288px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.45.57.png"/></a></figure></div></div><h3 id="9f084328-9f7f-4f9d-97dd-b9b25a75ff00" class="">6.1.5 线性表与树的结构对比</h3><table id="255a3ff4-5d56-424d-b580-4d560f53da77" class="simple-table"><thead class="simple-table-header"><tr id="3854ab72-3f7a-465e-9eb3-1b49233c355c"><th id="[kiz" class="block-color-red_background simple-table-header" style="width:349px">线性结构</th><th id="RB}:" class="block-color-red_background simple-table-header" style="width:349px">树结构</th></tr></thead><tbody><tr id="8c6fe6b4-6cfa-4f4a-b622-08e9df765fa5"><td id="[kiz" class="" style="width:349px">第一个数据元素：无前驱</td><td id="RB}:" class="" style="width:349px">根结点：无双亲，唯一</td></tr><tr id="1b159576-27f1-42c0-a1b3-9b376ad6c034"><td id="[kiz" class="" style="width:349px">最后一个数据元素：无后继</td><td id="RB}:" class="" style="width:349px">叶结点：无孩子，可以多个</td></tr><tr id="767f2175-ed24-44d0-b774-1d8ca6b71c88"><td id="[kiz" class="" style="width:349px">中间元素：一个前驱，一个后继</td><td id="RB}:" class="" style="width:349px">中间结点：一个双亲多个孩子</td></tr></tbody></table><h2 id="18aad09d-1ce8-46eb-b283-ccad9e8899c2" class="">6.2 树的抽象数据类型</h2><figure id="faaacf87-4620-440f-ac92-3921422ba459" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.47.44.png"><img style="width:950px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.47.44.png"/></a></figure><h2 id="1a0360db-2b6a-4bba-a2ff-fa85340f608d" class="">6.3 树的存储结构</h2><figure id="e874f623-8268-415e-8682-39f5da67c28b" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.49.png"><img style="width:336px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.49.png"/></a></figure><h3 id="b1266b88-8bd6-4f10-9b8f-52c1870333ec" class="">6.3.1 双亲表示法</h3><div id="52cf8306-a734-4e28-b069-f81742ab28a4" class="column-list"><div id="6d1c0e0e-0129-427b-9456-b1892fe5adef" style="width:62.5%" class="column"><blockquote id="7d2307a2-8959-427f-829e-1b80fd33e27d" class="block-color-gray_background">一组连续空间存储树的结点，在每个结点中，附设一个指示器指示其双亲结点在数组中的位置。</blockquote></div><div id="76abee5a-9068-4f8b-b56b-ca39f6694fbe" style="width:37.49999999999999%" class="column"><table id="676fb539-39c1-4fe6-989a-dfa4824f4ead" class="simple-table"><thead class="simple-table-header"><tr id="e225d98a-adbc-4716-b54c-014ce124fe8a"><th id="dPT?" class="block-color-yellow_background simple-table-header" style="width:86px">下标</th><th id="k?|@" class="block-color-yellow_background simple-table-header" style="width:67px">data</th><th id="q@Dz" class="block-color-yellow_background simple-table-header" style="width:90px">parent</th></tr></thead><tbody></tbody></table></div></div><blockquote id="c03f95c1-8297-40f4-8d5c-84ce0424715c" class="block-color-gray_background">可扩展此结构，带有<em><strong>双亲域，长子域，右兄弟域。</strong></em><p id="7d51dbf9-c8d3-4349-a628-644b1032171d" class="">存储结构的设计是一个非常灵活的过程。一个存储结构设计的是否合理，取决于基于该存储结构的运算是否适合，是否方便，时间复杂度好不好等。</p></blockquote><table id="5161d101-1eb5-4118-b966-0f369a93c1c9" class="simple-table"><thead class="simple-table-header"><tr id="745cd3da-4409-43c2-88e7-4b7a5d4c7047"><th id="fj^T" class="block-color-yellow_background simple-table-header" style="width:139.6px">下标</th><th id="U:oF" class="block-color-yellow_background simple-table-header" style="width:139.6px">data</th><th id="gL\^" class="block-color-yellow_background simple-table-header" style="width:139.6px">parent</th><th id="n&gt;{I" class="block-color-yellow_background simple-table-header" style="width:139.6px">firstchild</th><th id="^ros" class="block-color-yellow_background simple-table-header" style="width:139.6px">rightsib</th></tr></thead><tbody><tr id="0567c9e2-b2f2-4fc5-a25e-4599d91fef59"><td id="fj^T" class="" style="width:139.6px">0</td><td id="U:oF" class="" style="width:139.6px">A</td><td id="gL\^" class="" style="width:139.6px">-1</td><td id="n&gt;{I" class="" style="width:139.6px">1</td><td id="^ros" class="" style="width:139.6px">-1</td></tr><tr id="d955134f-5d3e-4681-924d-aeaf8f53cf92"><td id="fj^T" class="" style="width:139.6px">1</td><td id="U:oF" class="" style="width:139.6px">B</td><td id="gL\^" class="" style="width:139.6px">0</td><td id="n&gt;{I" class="" style="width:139.6px">3</td><td id="^ros" class="" style="width:139.6px">2</td></tr><tr id="e6cc2335-d1e0-4451-b591-bae2ca09155a"><td id="fj^T" class="" style="width:139.6px">2</td><td id="U:oF" class="" style="width:139.6px">C</td><td id="gL\^" class="" style="width:139.6px">0</td><td id="n&gt;{I" class="" style="width:139.6px">4</td><td id="^ros" class="" style="width:139.6px">-1</td></tr><tr id="24a46c63-09c4-43fb-aa4c-a0b5838bf127"><td id="fj^T" class="" style="width:139.6px">3</td><td id="U:oF" class="" style="width:139.6px">D</td><td id="gL\^" class="" style="width:139.6px">1</td><td id="n&gt;{I" class="" style="width:139.6px">6</td><td id="^ros" class="" style="width:139.6px">-1</td></tr><tr id="46a2d837-84be-40e4-9a88-eb100b7a59ea"><td id="fj^T" class="" style="width:139.6px">4</td><td id="U:oF" class="" style="width:139.6px">E</td><td id="gL\^" class="" style="width:139.6px">2</td><td id="n&gt;{I" class="" style="width:139.6px">9</td><td id="^ros" class="" style="width:139.6px">5</td></tr><tr id="81456f76-9780-483b-897f-8f8e462c907c"><td id="fj^T" class="" style="width:139.6px">5</td><td id="U:oF" class="" style="width:139.6px">F</td><td id="gL\^" class="" style="width:139.6px">2</td><td id="n&gt;{I" class="" style="width:139.6px">-1</td><td id="^ros" class="" style="width:139.6px">-1</td></tr><tr id="b2453df4-74f9-4fbf-a0ef-2d0ac287f460"><td id="fj^T" class="" style="width:139.6px">6</td><td id="U:oF" class="" style="width:139.6px">G</td><td id="gL\^" class="" style="width:139.6px">3</td><td id="n&gt;{I" class="" style="width:139.6px">-1</td><td id="^ros" class="" style="width:139.6px">7</td></tr><tr id="09561d02-429a-419a-a3f2-7b286b02a08c"><td id="fj^T" class="" style="width:139.6px">7</td><td id="U:oF" class="" style="width:139.6px">H</td><td id="gL\^" class="" style="width:139.6px">3</td><td id="n&gt;{I" class="" style="width:139.6px">-1</td><td id="^ros" class="" style="width:139.6px">8</td></tr><tr id="57e2a187-d355-4cea-bc81-53bcd48c81fa"><td id="fj^T" class="" style="width:139.6px">8</td><td id="U:oF" class="" style="width:139.6px">I</td><td id="gL\^" class="" style="width:139.6px">3</td><td id="n&gt;{I" class="" style="width:139.6px">-1</td><td id="^ros" class="" style="width:139.6px">-1</td></tr><tr id="2bff4816-adc8-4ee3-84f3-91405898d74f"><td id="fj^T" class="" style="width:139.6px">9</td><td id="U:oF" class="" style="width:139.6px">J</td><td id="gL\^" class="" style="width:139.6px">4</td><td id="n&gt;{I" class="" style="width:139.6px">-1</td><td id="^ros" class="" style="width:139.6px">-1</td></tr></tbody></table><h3 id="837e6077-3fb4-485c-bb0c-573ec1ae1266" class="">6.3.2 孩子表示法</h3><blockquote id="628d16f1-37d0-4405-afa1-05a3f6c68531" class="block-color-gray_background">每个结点有多个指针域，其中每个指针指向一颗子树的根结点-<em><strong>多重链表表示法。</strong></em><p id="03c1bfb1-df8a-45ce-887f-7a0200c0ad09" class="">把每个结点的孩子结点排列起来，以单链表做存储结构，则n个结点有n个孩子链表，如果是叶子结点则此单链表为空。然后n个头指针又组成一个线性表，采用顺序存储结构，存放进一个一维数组中。</p></blockquote><figure id="9f6b8840-2557-452f-85b4-7bd72ced24f5" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.48.18.png"><img style="width:528px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.48.18.png"/></a></figure><p id="461fae73-cad4-4f29-bd21-ab4c7748ae3c" class="">⭐️ <em><strong>孩子表示法的改进 - 双亲孩子表示法：</strong></em></p><figure id="31d06ac2-7713-4638-affb-9f8b776ae51f" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.48.46.png"><img style="width:528px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.48.46.png"/></a></figure><h3 id="bc039e89-00e2-44dc-8615-b3ac265c4631" class="">6.3.3 孩子兄弟表示法</h3><blockquote id="b8308884-0d89-4529-9fe0-21d136ff82c4" class="block-color-gray_background">任意一棵树，它的结点的第一个孩子如果存在就是唯一的，它的右兄弟如果存在也是唯一的。因此，我们设置两个指针，分别指向该结点的第一个孩子和此结点的右兄弟。</blockquote><figure id="4e874fe2-f54c-4e37-bfb3-ac090e599518" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.49.22.png"><img style="width:528px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.49.22.png"/></a></figure><h2 id="392c0c65-7d3b-4cd3-8eda-2704e7883dfc" class="">6.4 二叉树</h2><h3 id="fea1e398-1b8f-4807-bd32-5f0f7ffee044" class="">6.4.1 二叉树的定义</h3><div id="901365f7-a5aa-4434-a0d7-24600f86d089" class="column-list"><div id="54893b9a-a752-454d-967b-4b5698175568" style="width:56.25%" class="column"><blockquote id="3d98fd6a-1d06-4836-b8c9-1d8e32a470f5" class="block-color-gray_background"><em><strong>二叉树</strong></em>（Binary Tree）是 n（n≥0）个结点的有限集合，该集合或者为空集（称为空二叉树），或者由一个根结点和两颗互不相交的、分别称为根结点的左子树和右子树的二叉树组成。</blockquote></div><div id="fd88947a-89f3-4e44-9d54-59ace1ffb432" style="width:43.75%" class="column"><figure id="c003de57-165f-4370-a316-f09c900f5c5c" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.01.png"><img style="width:144px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.01.png"/></a></figure></div></div><h3 id="a3513fee-6937-4801-be4c-6bca06c5ef29" class="">6.4.2 二叉树的特点</h3><div id="f1dc276c-e12c-4c5a-93ae-f7034511f788" class="column-list"><div id="548844bd-f69f-47c3-8b67-71ee7b5f6c9e" style="width:50%" class="column"><p id="539f8c74-60f4-4901-a145-fbc761e3965d" class="">❕二叉树特点：<div class="indented"><ul id="3bff0b7a-3eff-4905-8fe4-8fc32d2818de" class="bulleted-list"><li style="list-style-type:disc">每个结点最多有两颗子树。</li></ul><ul id="49c67c77-5dde-439c-8dca-e1b89ade0774" class="bulleted-list"><li style="list-style-type:disc">左子树和右子树是由顺序的，不能任意颠倒。</li></ul><ul id="fe68f378-9430-4c79-8f88-27fec30a202d" class="bulleted-list"><li style="list-style-type:disc">即使有一颗子树也得区分左右。</li></ul></div></p></div><div id="53ab3775-5024-4012-b217-5f266d214302" style="width:50%" class="column"><p id="199c8f65-379f-445d-97f8-70d395dd451e" class="">❕二叉树基本形态<div class="indented"><ul id="02a20b38-993f-4974-90a5-15a979ca0607" class="bulleted-list"><li style="list-style-type:disc">空二叉树。</li></ul><ul id="e687b542-beee-448c-9ffc-a40652d8d89c" class="bulleted-list"><li style="list-style-type:disc">只有一个根结点。</li></ul><ul id="d2af2307-8413-4d73-85ee-70f3f4cc17b2" class="bulleted-list"><li style="list-style-type:disc">根结点只有左子树</li></ul><ul id="817e96c5-f94c-4803-bb1b-56cd8104ad18" class="bulleted-list"><li style="list-style-type:disc">根结点只有右子树</li></ul><ul id="60a9c582-0796-4cb1-8c96-afe5abb6c28a" class="bulleted-list"><li style="list-style-type:disc">根结点既有左子树又有右子树</li></ul></div></p></div></div><h3 id="2667ed8a-0858-466d-ae8c-cfc507350c9c" class="">6.4.3 特殊二叉树</h3><ol type="1" id="2c2d4f3e-be8b-47db-a303-988112198559" class="numbered-list" start="1"><li>斜树<blockquote id="354ceed8-abbd-4798-9739-852131634bef" class="block-color-gray_background"><em><strong>斜树</strong></em> 所有的结点都只有左子树或者只有右子树。</blockquote></li></ol><div id="c0c74e91-426e-4b4a-a796-d98976a38fda" class="column-list"><div id="9b44af05-d34d-4ed8-912d-e53fc39553a2" style="width:56.25%" class="column"><ol type="1" id="3337539d-5a39-41f7-b38a-76b7b51b61df" class="numbered-list" start="2"><li>满二叉树<blockquote id="872369c9-8ad0-459c-a000-2b3c2b162602" class="block-color-gray_background"><em><strong>满二叉树</strong></em> 二叉树所有的分支结点都存在左子树和右子树，并且所有叶子都在同一层上。</blockquote></li></ol></div><div id="7e38d161-7166-4bb5-8e20-2f1981fa84e8" style="width:43.75%" class="column"><figure id="ebff2bef-53f4-428b-a211-b0f389217aff" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.17.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.17.png"/></a></figure></div></div><p id="782e1fd5-4848-4e04-8c23-7cd90f4807eb" class="">❕满二叉树特点：<div class="indented"><ul id="bdd165c3-94b4-44d4-91e9-2c071407679e" class="bulleted-list"><li style="list-style-type:disc">叶子只能在最下层。</li></ul><ul id="3eb4ffd9-2182-47db-ace9-10a22c77c450" class="bulleted-list"><li style="list-style-type:disc">非叶子结点的度一定为2。</li></ul><ul id="5bce2931-ff7c-44b2-a266-e326ccd284b0" class="bulleted-list"><li style="list-style-type:disc">同样深度的二叉树，满二叉树结点树最多，叶子数最多。</li></ul></div></p><div id="ca2b70ce-2517-498a-ba01-e9f8eaeab821" class="column-list"><div id="8ecd1931-bea3-4790-941e-1e5f98e6231b" style="width:56.25%" class="column"><ol type="1" id="20fb2066-7d5c-47f8-ba08-f0d040629d69" class="numbered-list" start="3"><li>完全二叉树<blockquote id="84c716a6-4e85-4b97-9b75-e745b92fbac4" class="block-color-gray_background">对一颗具有n个结点的二叉树按层序编号，如果编号为i（1≤i≤n）的结点与同样深度的满二叉树中编号为i的结点在二叉树中的位置完全相同，则这颗二叉树称为<em><strong>完全二叉树。</strong></em></blockquote></li></ol></div><div id="79ebd48d-e81f-4447-bd43-98beb4d0b126" style="width:43.75000000000001%" class="column"><figure id="103ca535-b584-432c-a53c-209df5adbdab" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.32.png"><img style="width:288px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_17.50.32.png"/></a></figure></div></div><p id="161177bd-d833-4d42-aff6-b25011c62d21" class="">❕完全二叉树特点<div class="indented"><ul id="fb72b795-404a-46e8-8688-b5441187aad8" class="bulleted-list"><li style="list-style-type:disc">叶子结点只能在下面两层。</li></ul><ul id="f9d9791d-3a67-48bc-a196-6a4ea25f3b6a" class="bulleted-list"><li style="list-style-type:disc">最下层的叶子一定集中在左部连续位置。</li></ul><ul id="14b83e1f-47c4-4f35-a6d7-68f9451396a7" class="bulleted-list"><li style="list-style-type:disc">倒数二层，若有叶子结点，一定都在右部连续位置。</li></ul><ul id="21a42772-51d6-4a42-88a5-db00a5b4dabc" class="bulleted-list"><li style="list-style-type:disc">如果结点度为1，则该结点只有左孩子，不存在只有右孩子的结点。</li></ul><ul id="fe28c69c-a869-4d3e-b1ac-00dc61078236" class="bulleted-list"><li style="list-style-type:disc">同样结点的二叉树，完全二叉树的深度最小。</li></ul></div></p><h3 id="804853d3-619e-4518-86f2-7bf2aa1a327b" class="">6.4.4 二叉树的性质 ⭐️⭐️⭐️⭐️⭐️</h3><figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex" id="5e237f2c-9e43-4bfc-903f-a6f8c3576b4d"><div style="font-size:1.5em"><span class="icon">⭐</span></div><div style="width:100%">⭐️⭐️⭐️⭐️⭐️<ul id="7b115263-2b7b-48d2-bd5d-cb9efd40d753" class="bulleted-list"><li style="list-style-type:disc"><em><strong>性质一: 在二叉树的第i层上至多有2^(i-1)个结点（i≥1）。</strong></em></li></ul><ul id="ee85c92e-6357-4a5b-92fa-4a953e95bfde" class="bulleted-list"><li style="list-style-type:disc"><em><strong>性质二：深度为k的二叉树至多有2^k - 1个结点（k≥1）。</strong></em></li></ul><ul id="e1c20ae4-4117-41f0-9512-4d74331272be" class="bulleted-list"><li style="list-style-type:disc"><em><strong>性质三：对任何一颗二叉树T，如果其终端结点数为n0,度为2的结点数为n2，则n0 = n2 + 1,</strong></em><ul id="6ed2ca09-a83d-4247-847f-d7cb24607c4d" class="bulleted-list"><li style="list-style-type:circle"><em><strong>分支线总数 = n - 1 = n1 + 2 * n2 ;   n = n0 + n1 + n2 </strong></em></li></ul></li></ul><ul id="ec77b610-c55f-4625-b9b1-142ff32783b1" class="bulleted-list"><li style="list-style-type:disc"><em><strong>性质四：具有n个结点的完全二叉树的深度为[log(2)N] + 1 ( [x]表示不大于x的最大整数 )</strong></em><ul id="8fba7ead-d80e-4e85-a82e-c6da657bd108" class="bulleted-list"><li style="list-style-type:circle"><em><strong>n 小于同样深度满二叉树 2^k - 1 </strong></em></li></ul><ul id="6fc3e0b6-434b-495a-8135-9638dc7f1166" class="bulleted-list"><li style="list-style-type:circle"><em><strong>n 大于等于层数-1的满二叉树 2^(k-1) - 1</strong></em></li></ul><ul id="646561f3-7221-4e3b-8bdb-6a65160be7e7" class="bulleted-list"><li style="list-style-type:circle"><em><strong>k - 1 ≤ log(2)n &lt; k</strong></em></li></ul><ul id="7d14f5a3-38f8-499b-abd7-cc3b78e83612" class="bulleted-list"><li style="list-style-type:circle"><em><strong>n为正整数</strong></em></li></ul></li></ul><ul id="e82e8b70-3311-47e2-aaa7-9183e17e76bd" class="bulleted-list"><li style="list-style-type:disc"><em><strong>性质五：如果对一颗有n个结点的完全二叉树的结点按层序编号，每层从左到右，对任一结点i（1≤ i ≤ n）</strong></em><ul id="2797eb24-b1b8-4819-9a23-83550f49b9c7" class="bulleted-list"><li style="list-style-type:circle"><em><strong>如果i = 1, 则结点i是二叉树的根，无双亲；如果i &gt; 1 ，则其双亲是结点 [i / 2]。</strong></em></li></ul><ul id="f664bfc0-1d4c-4459-be97-90e3ed47f527" class="bulleted-list"><li style="list-style-type:circle"><em><strong>如果 2i &gt; n ，则结点 i 无左孩子（结点i为叶子结点）；否则其左孩子是结点2i。</strong></em></li></ul><ul id="76dacabf-3b5d-4c61-8e56-7a2580df03b4" class="bulleted-list"><li style="list-style-type:circle"><em><strong>如果 2i + 1 &gt; n ，则结点 i 无右孩子；否则其右孩子是结点 2i + 1。</strong></em></li></ul></li></ul></div></figure><h3 id="1feae720-3ad5-445d-aefe-1ba68a17a433" class="">6.4.5 二叉树的存储结构</h3><div id="18459799-6c71-40f2-8097-c2f2c3873b8b" class="column-list"><div id="863350eb-8025-485b-942c-11efc70b5598" style="width:50%" class="column"><ol type="1" id="0c09a3b4-95fa-4954-ae8d-d928d36b57d1" class="numbered-list" start="1"><li>二叉树顺序存储结构<blockquote id="779563b0-4508-4af0-ad2f-43b71e89a7e3" class="block-color-gray_background">完全二叉树采用顺序结构可以空间无损实现，一般二叉树把不存在的结点设置为“ ^ ”。</blockquote></li></ol></div><div id="30667eaa-02e9-4b7d-a949-4d42f4e9dd43" style="width:50%" class="column"><figure id="0d0fbf4d-7d53-4cdb-824d-a44049264c71" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.24.54.png"><img style="width:336px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.24.54.png"/></a></figure></div></div><div id="70f012aa-ad92-4c4b-9bbe-5e2160538b7a" class="column-list"><div id="b08b1ed1-e75d-44ce-be47-9ebc85d5175b" style="width:50%" class="column"><ol type="1" id="0bf1a3af-a881-4ec3-8141-b81362909b02" class="numbered-list" start="2"><li>二叉链表<blockquote id="7db41054-e422-4e06-8ee1-0487cf9ac133" class="block-color-gray_background">二叉树每个结点最多有两个孩子，所以为它设计一个数据域和两个指针域 - <em><strong>二叉链表</strong></em><p id="5b93d58e-a4fc-4bcd-a3f2-50e76a2a0e05" class="">lchild  data  rchild</p></blockquote></li></ol></div><div id="56044651-34dd-49de-97b2-ee35b896135c" style="width:50%" class="column"><figure id="01f6fdd8-013b-40f6-a73f-d55b3359242d" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.07.png"><img style="width:432px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.07.png"/></a></figure></div></div><h3 id="8968f5c5-8e5c-4dcf-9ef7-6f03b08410e0" class="">6.4.6 二叉树的遍历</h3><blockquote id="d3f1fb8e-638f-44ff-85fb-7f84ee2baaf2" class="block-color-gray_background"><em><strong>二叉树的遍历（ traversing binary tree ）</strong></em>是指从根结点出发，按照某种 <em><strong>次序 </strong></em>依次 <em><strong>访问 </strong></em>二叉树中所有的结点，使得每个结点被访问一次且仅被访问一次。</blockquote><p id="ca9f4de1-0ae3-43ee-9c5d-496378418750" class=""><em><strong>💡 中序遍历序列加左右任意单边的遍历序列可以唯一确定一颗二叉树</strong></em></p><div id="e2063c7b-d3ce-4895-af07-72520690a8f5" class="column-list"><div id="126617f6-9bd6-4feb-afbc-140809b833b7" style="width:62.5%" class="column"><ol type="1" id="f21c11e4-4e13-4bae-b299-d741e39d9909" class="numbered-list" start="1"><li><em><strong>前序遍历</strong></em> - 深度优先<blockquote id="7a4004a0-fd7b-4192-a8d3-9e82cab1b6c3" class="block-color-gray_background">规则是若二叉树为空，则空操作返回，否则先访问根结点，然后前序遍历左子树，再前序遍历右子树。<p id="e336ed3c-e1f8-4716-b116-ee40486942ab" class="">遍历顺序：ABDGHCEIF</p></blockquote></li></ol></div><div id="4dd3c94d-bfc0-4a8f-852c-deb0c469dd2c" style="width:37.49999999999999%" class="column"><figure id="772a9719-5602-4368-964a-00c30e0c3eab" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.19.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.19.png"/></a></figure></div></div><pre id="8fea6eb1-483d-4fa1-b853-5d8aaa293808" class="code"><code>void preOrderTraverse(BiTree tree){
+	if(tree == null){
+		return; 
+	}
+	system.out.println(tree.val()); // 对结点的操作
+	preOrderTraverse(tree.leftChild()); // 遍历左子树结点数据
+	preOrderTraverse(tree.rightChild()); // 遍历右子树结点数据
+}</code></pre><div id="7c30c35f-ab27-434c-925e-33fd208df540" class="column-list"><div id="445380f5-b86c-43a5-b091-5e582595ca73" style="width:62.5%" class="column"><ol type="1" id="83fbd2cd-5477-402a-90ee-94a26336af43" class="numbered-list" start="1"><li><em><strong>中序遍历 </strong></em>- 深度优先<blockquote id="16a9b224-e9af-4e56-ad73-2a24e7379e20" class="block-color-gray_background">规则是若树为空，则空操作返回，否则从根结点开始（注意并不是先访问根结点），中序遍历根结点的左子树，然后是访问根结点，最后中序遍历右子树。<p id="20d9f616-c225-4dff-9971-db22b9ca6f86" class="">遍历顺序： GDHBAEICF</p></blockquote></li></ol></div><div id="744f385d-24e2-4c62-8897-65092e5a2175" style="width:37.49999999999999%" class="column"><figure id="e326091a-a326-4ce3-87dd-38e6b2ee1cc1" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.26.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.26.png"/></a></figure></div></div><pre id="dc593412-7267-4ad6-aad0-1c768401ea1b" class="code"><code>void preOrderTraverse(BiTree tree){
+	if(tree == null){
+		return; 
+	}
+	preOrderTraverse(tree.leftChild()); // 遍历左子树结点数据
+	system.out.println(tree.val()); // 对结点的操作
+	preOrderTraverse(tree.rightChild()); // 遍历右子树结点数据
+}</code></pre><div id="1dcc1cac-64c1-4871-898f-fc02368a750c" class="column-list"><div id="8938cb88-8035-48f3-b188-6fd6506ee72e" style="width:62.5%" class="column"><ol type="1" id="3beffd20-d445-43fc-9a1c-28b0fa8d84c3" class="numbered-list" start="1"><li><em><strong>后序遍历</strong></em> - 深度优先<blockquote id="424372b0-973d-4113-82b3-dd02df6c3c2d" class="block-color-gray_background">规则是若树为空，则空操作返回，否则从左到右先叶子后结点的方式遍历访问左右子树，最后是访问根结点。<p id="e5c39c48-ccfd-4054-8b45-8c3521e95b25" class="">遍历顺序：GHDBIEFCA</p></blockquote></li></ol></div><div id="ea6a0c28-01bf-4d9d-8420-d0bda7a87e08" style="width:37.5%" class="column"><figure id="1a9fff04-c287-43b9-8f1c-ba5d41ac4fd9" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.35.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.35.png"/></a></figure></div></div><pre id="ded104b8-7af6-4485-9266-751dfd7ddca7" class="code"><code>void preOrderTraverse(BiTree tree){
+	if(tree == null){
+		return; 
+	}
+	preOrderTraverse(tree.leftChild()); // 遍历左子树结点数据
+	preOrderTraverse(tree.rightChild()); // 遍历右子树结点数据
+	system.out.println(tree.val()); // 对结点的操作
+}</code></pre><div id="52fe11db-868e-4c28-9ad7-9b17d028b9fb" class="column-list"><div id="561b286c-7a67-4e75-b9ab-da8663241b36" style="width:62.5%" class="column"><ol type="1" id="c3fdb2bc-d3a3-4e24-9063-c7db79449ce3" class="numbered-list" start="1"><li><em><strong>层序遍历 </strong></em>- 广度优先<blockquote id="8148b959-15f2-4144-bd62-91bdb21fbab7" class="block-color-gray_background">规则是若树为空，则空操作返回，否则从树的第一层，也就是根结点开始访问，从上而下逐层遍历，在同一层中，按从左到右的顺序对结点逐个访问。<p id="6d81822c-4e93-4e20-ac46-2bd68cac3b1e" class="">遍历顺序：ABCDEFGHI</p></blockquote></li></ol></div><div id="c7614d41-07e3-47c1-b50b-9aa8303e414c" style="width:37.5%" class="column"><figure id="56107e3e-beb4-4e96-8d70-7ec54b797b3c" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.42.png"><img style="width:240px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.42.png"/></a></figure></div></div><h3 id="2c3155c6-24f2-4ee7-8640-53eebc7ef992" class="">6.4.7 线索二叉树</h3><div id="0e5b5b86-b805-4686-91f9-6b016b220369" class="column-list"><div id="28acf59e-9818-4a64-88ce-e9b51ce74d48" style="width:37.5%" class="column"><blockquote id="508c43d3-7df3-44e4-9e15-6877654085b6" class="block-color-gray_background">指向前驱和后继的指针称为线索，加上线索的二叉链表称为<em><strong>线索链表</strong></em>，相应地二叉树称为 <em><strong>线索二叉树（Threaded Binary Tree）</strong></em></blockquote><blockquote id="f668a836-3e9a-496c-b455-643643e53d5a" class="block-color-gray_background">对二叉树以某种次序遍历使其变为线索二叉树的过程称作是<em><strong>线索化</strong></em>。<p id="9eed48d5-658c-40ff-981e-40fd2f4f4a02" class="">如果所用的二叉树需要经常遍历或查找结点时需要某种遍历序列中的前驱和后继，</p></blockquote></div><div id="24a9b90a-c33b-4247-9a3c-9c019cded0b8" style="width:62.5%" class="column"><figure id="9c45c4f9-97c7-48bd-977e-fa27caa86295" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.26.03.png"><img style="width:432px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.26.03.png"/></a></figure></div></div><figure id="733bd467-598f-4d41-bbd6-09cde8769a11" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.52.png"><img style="width:720px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.25.52.png"/></a></figure><pre id="b18ae20b-1883-439d-8683-cebec6f712dd" class="code"><code>BiThrThree pre; /* 全局变量，始终指向上一访问结点 */
+/* 中序遍历进行中序线索化 */
+void InThreading(BiThrThree p)
+{
+	if(p)
+	{
+		InThreading(p-&gt;lchild);/* 递归左子树线索化 */
+		if(!p-&gt;lchild)/* 没有左孩子 */
+		{
+			p-&gt;LTag=Thread;/* 前驱线索 */
+			p-&gt;lchind=pre;/* 左孩子指针指向前驱 */
+		}
+		if(!pre-&gt;rchild)/* 前驱没有右孩子 */
+		{
+			pre-&gt;RTag=Thread;/* 后继线索 */
+			pre-&gt;rchind=p;/* 前驱右孩子指针指向后继（当前结点p） */
+		}
+		pre=p;/* 保持pre 指向p的前驱 */
+		InThreading(p-&gt;rchild);/* 递归右子树线索化 */
+	}
+}</code></pre><h3 id="be608a49-7685-4b1f-b4c3-f4a6d4e12284" class="">6.4.8 树，森林与二叉树的转换</h3><ul id="48e86218-4ede-4291-8353-3e080a026ed5" class="bulleted-list"><li style="list-style-type:disc">树转换为二叉树<figure id="0caf722b-83ae-46c8-962e-e6cfdfd5b8f2" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.26.32.png"><img style="width:672px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.26.32.png"/></a></figure></li></ul><ul id="1dad8cee-4314-4f60-90fe-6c02835240e9" class="bulleted-list"><li style="list-style-type:disc">森林转换为二叉树<figure id="b2b64244-030e-4994-8582-40214e07e882" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.26.50.png"><img style="width:1366px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.26.50.png"/></a></figure></li></ul><ul id="b2d81010-9ff1-4c16-a630-1074e36cba9f" class="bulleted-list"><li style="list-style-type:disc">二叉树转换为树<figure id="de0101b1-5e64-4f22-b073-5fd9f026b8d3" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.27.00.png"><img style="width:1248px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.27.00.png"/></a></figure></li></ul><ul id="207bdb68-5220-4de7-86a7-a98a5a999408" class="bulleted-list"><li style="list-style-type:disc">二叉树转换为森林<figure id="c0552bb6-bde6-4cfa-8600-79a18f8fc23f" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.27.08.png"><img style="width:966px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.27.08.png"/></a></figure></li></ul><h3 id="16a2fe51-172d-41ac-a49a-6c138310cf61" class="">6.4.8 赫夫曼树及其应用</h3><blockquote id="3cfade36-a43f-4d6b-87ca-fee5ca562286" class="block-color-gray_background">从树中一个结点到另一个结点之间的分支构成两个结点之间的路径，路径上的分支数目称作<em><strong>路径长度</strong></em>。<p id="eb3b6ed0-7e82-4bc0-86d3-554af7b3fc4d" class=""><em><strong>树的路径长度</strong></em>就是从树根到每一结点的路径长度之和。</p><p id="e3c23cc7-5a52-47f0-b12f-178c20c2703d" class="">带权路径长度WPL最小的二叉树称为<em><strong>赫夫曼树</strong></em>。</p></blockquote><table id="29de707d-0375-476a-95df-4794134919b0" class="simple-table"><tbody><tr id="a4e89b8c-b726-463c-8187-e2b115359fe2"><th id="GcLK" class="block-color-teal_background simple-table-header" style="width:116.33333333333333px">分数</th><td id="U~`_" class="" style="width:116.33333333333333px">0-59</td><td id="jKAU" class="" style="width:116.33333333333333px">60-69</td><td id="Ijqt" class="" style="width:116.33333333333333px">70-79</td><td id="=T]i" class="" style="width:116.33333333333333px">80-89</td><td id="Ll@\" class="" style="width:116.33333333333333px">90-100</td></tr><tr id="e686211c-78a9-4061-acb8-905c42de7928"><th id="GcLK" class="block-color-teal_background simple-table-header" style="width:116.33333333333333px">所占比例</th><td id="U~`_" class="" style="width:116.33333333333333px">5%</td><td id="jKAU" class="" style="width:116.33333333333333px">15%</td><td id="Ijqt" class="" style="width:116.33333333333333px">40%</td><td id="=T]i" class="" style="width:116.33333333333333px">30%</td><td id="Ll@\" class="" style="width:116.33333333333333px">10%</td></tr></tbody></table><div id="bcc8d799-d3c7-42e6-a02f-2af9db248c9a" class="column-list"><div id="79a91bc7-7662-40e6-83c4-ab6bf618e7c8" style="width:25%" class="column"><p id="af47bfa1-56bc-436a-bfe3-c0b503c1be03" class="">二叉树a 的WPL= 5 *1 + 15 * 2 + 40* 3 + 30 * 4 + 10 * 4 = 315</p><p id="0fb7467b-2e2b-4de8-adc6-ab6aff9c3763" class="">二叉树b 的WPL= 5 *3 + 15 * 3 + 40* 2 + 30 * 2 + 10 * 2 = 220</p></div><div id="b5dcb8f9-90aa-40f4-801a-53134f6d612c" style="width:75%" class="column"><figure id="06e266df-5f03-4674-91d6-e8914aa26112" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.42.10.png"><img style="width:480px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.42.10.png"/></a></figure></div></div><p id="2539f62f-8208-44f6-a41a-e887e899ce11" class="">
+</p><figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex" id="4370b80d-cda3-4b92-beac-3c9cc1ca11df"><div style="font-size:1.5em"><span class="icon">💡</span></div><div style="width:100%">赫夫曼编码<blockquote id="f1607862-f0d2-4b38-8a15-8c343f36e0e7" class="">若要设计长短不等的编码，则必须是任一字符的编码都不是另一个字符的编码的前缀，这种编码称为<em><strong>前缀编码。</strong></em></blockquote><table id="09e76df2-c12b-4cf4-b33f-e0dc8dda9c40" class="simple-table"><tbody><tr id="9019dc0a-7794-4de1-a75e-0d44c6e86ed9"><th id="GcLK" class="block-color-teal_background simple-table-header" style="width:90.85714285714286px">字母</th><td id="U~`_" class="" style="width:90.85714285714286px">A</td><td id="jKAU" class="" style="width:90.85714285714286px">B</td><td id="Ijqt" class="" style="width:90.85714285714286px">C</td><td id="=T]i" class="" style="width:90.85714285714286px">D</td><td id="Ll@\" class="" style="width:90.85714285714286px"> E</td><td id="Bo}T" class="" style="width:90.85714285714286px">F</td></tr><tr id="c6c9541e-a080-4eba-8dd2-5f882e306223"><th id="GcLK" class="block-color-teal_background simple-table-header" style="width:90.85714285714286px">所占比例</th><td id="U~`_" class="" style="width:90.85714285714286px">27%</td><td id="jKAU" class="" style="width:90.85714285714286px">8%</td><td id="Ijqt" class="" style="width:90.85714285714286px">15%</td><td id="=T]i" class="" style="width:90.85714285714286px">15%</td><td id="Ll@\" class="" style="width:90.85714285714286px">30%</td><td id="Bo}T" class="" style="width:90.85714285714286px">5%</td></tr><tr id="2b87f4ff-387d-4766-bd7c-75b404ee7316"><th id="GcLK" class="block-color-teal_background simple-table-header" style="width:90.85714285714286px">二进制字符</th><td id="U~`_" class="" style="width:90.85714285714286px">000</td><td id="jKAU" class="" style="width:90.85714285714286px">001</td><td id="Ijqt" class="" style="width:90.85714285714286px">010</td><td id="=T]i" class="" style="width:90.85714285714286px">011 </td><td id="Ll@\" class="" style="width:90.85714285714286px">100</td><td id="Bo}T" class="" style="width:90.85714285714286px">101</td></tr><tr id="02faece5-5d50-4ba5-897f-f11f2d432fb6"><th id="GcLK" class="block-color-teal_background simple-table-header" style="width:90.85714285714286px">优化字符</th><td id="U~`_" class="" style="width:90.85714285714286px">01</td><td id="jKAU" class="" style="width:90.85714285714286px">1001</td><td id="Ijqt" class="" style="width:90.85714285714286px">101</td><td id="=T]i" class="" style="width:90.85714285714286px">00</td><td id="Ll@\" class="" style="width:90.85714285714286px">11</td><td id="Bo}T" class="" style="width:90.85714285714286px">1000</td></tr></tbody></table><figure id="22b52ca1-f83e-4380-84eb-0c84904afbde" class="image"><a href="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.42.20.png"><img style="width:1614px" src="第六章%20树%20b96f0a9a05d34916872d8224bf36d807/截屏2022-06-22_22.42.20.png"/></a></figure><p id="187c157f-e6d1-4270-a4ff-d88881691a09" class="">BADCADFEED的编码：</p><ul id="f898f4eb-cbea-47b3-ad65-e1352bc2662f" class="bulleted-list"><li style="list-style-type:disc">原编码二进制串：001000011010000011101100100011  - 30字符</li></ul><ul id="8dd35507-b722-47c6-b112-4896a320f617" class="bulleted-list"><li style="list-style-type:disc">赫夫曼编码串：    1001010010101001000111100             - 25字符</li></ul></div></figure><p id="44c74801-d662-49ec-9f91-f5369b5bcaaf" class="">
+</p></div></article></body></html>

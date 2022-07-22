@@ -1,0 +1,689 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Java内存区域</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="0d127796-4659-4489-a196-75375fc61b9c" class="page sans"><header><h1 class="page-title">Java内存区域</h1></header><div class="page-body"><nav id="b3f85049-bcec-4083-bda3-a2989e266a8c" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#9533c5ed-a0df-4137-94a1-21109bcc4b09">现存内存区域模型：</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#599f5d3a-2a2d-485d-bcc8-40026f013ab0">历史（jdk8之前）内存区域模型：</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#28ddd808-1b93-468a-9da3-bb41b4dbd47f">内存分区域说明：</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#88572f3d-67ed-4982-baba-b57622c61b70">线程私有区域 Private</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#808cc7ca-2ff2-4f3b-be0d-219f3686a558">程序计数器 Program Counter Register</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#78e54cef-fbc6-4cad-999d-bdf964c6ec96">Java虚拟机栈 Java Virtual Machine Stack</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#e02d77c7-0165-4fac-b682-f3dbc547affa">本地方法栈 Native Method Stacks</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#77413a08-f12f-4825-9ec0-b34051972385">共享内存区域</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#e17efd3d-2d32-4eb9-8080-1849bda635df">Java堆 Java Heap</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#baefcc43-76c7-4071-b684-0c1e325ddc3c">方法区 Method Area &amp; Non-Heap</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#13bb1c21-2d51-4067-bc1f-2a95458e914e">元空间 Meta Space</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#7fae985b-3147-4eef-9727-000f107694f4">Method Area To Meta Space</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#26c2790c-1591-4189-a934-ba08877c9b24">直接内存 Direct Memory</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#a7aab039-7281-440d-bae0-a1c2df85c32e">参考资料</a></div></nav><h1 id="9533c5ed-a0df-4137-94a1-21109bcc4b09" class="">现存内存区域模型：</h1><figure id="79490b35-6e39-4a4c-ab46-369f97849a0f" class="image"><a href="Java内存区域%200d12779646594489a19675375fc61b9c/18.png"><img style="width:2218px" src="Java内存区域%200d12779646594489a19675375fc61b9c/18.png"/></a></figure><h1 id="599f5d3a-2a2d-485d-bcc8-40026f013ab0" class="">历史（jdk8之前）内存区域模型：</h1><figure id="cf1c81b5-125a-4fb5-ab36-912531267cef" class="image"><a href="Java内存区域%200d12779646594489a19675375fc61b9c/16.png"><img style="width:2170px" src="Java内存区域%200d12779646594489a19675375fc61b9c/16.png"/></a></figure><p id="caa44b9d-e211-43f3-8196-6fe32193b2cc" class="">
+</p><h1 id="28ddd808-1b93-468a-9da3-bb41b4dbd47f" class="">内存分区域说明：</h1><p id="6183c322-7582-46eb-b7f7-03cf9017ea7a" class="">
+</p><h2 id="88572f3d-67ed-4982-baba-b57622c61b70" class="">线程私有区域 Private</h2><h3 id="808cc7ca-2ff2-4f3b-be0d-219f3686a558" class="">程序计数器 Program Counter Register</h3><blockquote id="1a33d6bc-0d74-4242-b498-200b1668ad9a" class="block-color-gray_background">一块较小的内存空间，它可以看做是当前线程所执行的字节码的行号指示器。在Java虚拟机的概念模型中，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基本功能都需要依赖这个计数器完成。<p id="f2e088ab-9541-442f-9086-39af12dc82eb" class="">每条线程都有独立的程序计数器，各个线程之间计数器互不影响，独立存储，线程私有，方便在并发时方便切换到其他线程，回到其他线程的执行位置。</p><p id="94ff0c56-47e3-46fe-8da2-9b5697a994cc" class="">执行Java方法，计数器记录的是正在执行的虚拟机字节码指令的地址。</p><p id="b8e69fb2-a78d-4182-82f0-73716050161e" class="">执行Native方法，计数器值为空（Undefined）</p><p id="d08f8909-be4e-4e80-919a-0e88a0fd9d58" class=""><em><strong>此内存区域是唯一一个不会产生OutOfMemoryError情况的区域。</strong></em></p></blockquote><p id="169e7612-36f9-4645-93cd-bd8d878c3d02" class="">
+</p><h3 id="78e54cef-fbc6-4cad-999d-bdf964c6ec96" class="">Java虚拟机栈 Java Virtual Machine Stack</h3><figure id="8d3fe555-ecd0-41b6-bd69-2771a56608ef" class="image"><a href="Java内存区域%200d12779646594489a19675375fc61b9c/123.png"><img style="width:2100px" src="Java内存区域%200d12779646594489a19675375fc61b9c/123.png"/></a></figure><blockquote id="0d54cd50-64bf-4eb6-9d48-3767a6110fb0" class="block-color-gray_background">线程私有，生命周期与线程相同。<p id="ee01e4c9-b3fa-49ff-ba3b-f2cfa121cb81" class="">每个方法执行的时候，Java虚拟机会同步创建一个栈帧- Stack Frame.</p><p id="6227e103-6829-44f6-a2db-5dba90066269" class="">栈帧 - Stack Frame ：<div class="indented"><p id="11a0b22e-3ac8-47b0-8c39-a4e150ffcee6" class="">存储局部变量表 ，操作数栈，动态链接，方法出口等信息。</p></div></p><ol type="1" id="8367454d-bac4-4581-8f1b-8e6c8da8add9" class="numbered-list" start="1"><li>局部变量表：<p id="8d4744e2-02ad-4ee3-8938-879b6089b8b0" class="">存储编译期可知Java虚拟机的基本数据类型、对象引用（指向对象起始地址的引用指针）和ReturnAddress类型（指向了一条字节码指令的地址）</p><p id="743a9e59-575c-4867-a640-3c0269af5154" class=""><em><strong>局部变量表的存储空间以局部变量槽- slot表示。</strong></em><div class="indented"><ul id="950b33f2-4d0d-4284-ad4b-794fb7f4f8eb" class="bulleted-list"><li style="list-style-type:disc">64位长度的long,double占用两个槽，其余都占用一个槽。</li></ul><ul id="acee8b57-6458-47fc-8f0c-17117d32cd91" class="bulleted-list"><li style="list-style-type:disc">进入方法时，在栈帧需要的局部变量表大小（局部变量槽数量）是确定的。</li></ul><ul id="26a34ef2-41e7-483a-a396-423dbc37b795" class="bulleted-list"><li style="list-style-type:disc">局部变量槽单个所占空间为32bit还是64或更多由虚拟机具体实现。</li></ul></div></p></li></ol><ol type="1" id="f721d2c1-b8fe-4b65-8745-5714f2a06cba" class="numbered-list" start="2"><li>操作数栈：<p id="57b74a22-db00-48bb-855d-43d6e88a3759" class="">当一个方法刚刚开始执行的时候，这个方法的操作数栈是空的，在方法的执行过程中，会有各种字节码指令往操作数栈中写入和提取内容，也就是出栈/入栈操作。</p></li></ol><ol type="1" id="9d514e05-ff67-421a-a551-72bf15933bc7" class="numbered-list" start="3"><li>动态链接：<p id="ea8fc7b7-0078-49de-b7b6-fd97e4efb9aa" class="">每个栈帧都包含一个指向运行时常量池中该栈帧所属方法的引用。持有这个引用是为了支持方法调用过程中的动态连接(Dynamic Linking)。</p><blockquote id="2c7fe01b-4618-41e8-b52b-c7dfe12deec0" class="">常量池可以便于指令的识别</blockquote><pre id="c44683af-d598-437e-98f8-5e01b9be5eb6" class="code code-wrap"><code>    public void methodA(){
+
+    }
+    public void methodB(){
+        methodA();//methodB()调用methodA(),先找到调用methodA()的版本符号，再变为直接引用
+    }</code></pre><p id="fcb92dd7-b7ec-4067-9cf2-25dc33dca1eb" class="">所有方法调用中的目标方法在Class文件里面都是一个常量池中的符号引用，在类加载的解析阶段，会将其中的一部分符号引用转化为直接引用。</p></li></ol><p id="9bd3907a-be15-4282-800a-fa1a8b503158" class="">方法调用并不等同于方法执行，方法调用阶段唯一的任务就是确定被调用方法的版本(即调用哪一个方法)，这也是Java强大的扩展能力，在运行期间才能确定目标方法的直接引用。</p><ol type="1" id="06070d62-8fc5-4363-8e62-56af36e53cd4" class="numbered-list" start="1"><li>方法出口：<p id="4d692c97-d3c9-48cb-ada3-f4c8c02aacc6" class="">返回分为 正常返回 和 异常退出。</p><p id="305134f9-0604-44c4-bc8e-764f6d5b032b" class="">无论何种退出情况，都将返回至方法当前被调用的位置，这也程序才能继续执行。</p><p id="199104c9-c7c1-43eb-9014-0d0b31f5717a" class="">一般来说，方法正常退出时，调用者的PC计数器的值可以作为返回地址，栈帧中会保存这个计数器值。方法退出的过程相当于弹出当前栈帧。</p></li></ol><p id="543e2494-aa09-42a3-822b-c6dd86ab38b0" class=""><em><strong>该内存区域规定两种异常情况：</strong></em></p><ol type="1" id="af30b5ee-26fb-4bf5-88b8-40232328b27b" class="numbered-list" start="1"><li><em><strong>当线程请求的栈深度大于虚拟机允许的深度，将抛出StackOverflowError</strong></em><ol type="a" id="92bb922f-966c-4753-8bc2-187db23b3c89" class="numbered-list" start="1"><li><em><strong>递归深度过大</strong></em></li></ol><ol type="a" id="0878a238-ce02-44f6-9c2d-282fa10bb17f" class="numbered-list" start="2"><li><em><strong>栈帧过大</strong></em></li></ol></li></ol><ol type="1" id="c112f721-3537-4b7a-bc92-14aec781b584" class="numbered-list" start="2"><li><em><strong>栈动态扩展失败，抛出OutOfMermoryError。目前的HotSpot虚拟机不支持，之前的Classic可以。</strong></em></li></ol></blockquote><p id="58c32291-e6c9-45b8-bb06-830f1c817ed4" class="">
+</p><h3 id="e02d77c7-0165-4fac-b682-f3dbc547affa" class="">本地方法栈 Native Method Stacks</h3><figure id="cbfce7a1-1b52-445b-a4da-99444f6afb77" class="image"><a href="Java内存区域%200d12779646594489a19675375fc61b9c/456.png"><img style="width:1894px" src="Java内存区域%200d12779646594489a19675375fc61b9c/456.png"/></a></figure><blockquote id="2e07323e-de99-432b-b147-af5ac4e0ad4e" class="block-color-gray_background">本地方法栈与虚拟机栈发挥的作用非常相似。<p id="124eca6d-05fb-4282-a08b-e7b66194e2f6" class="">本地方法栈为虚拟机执行Native方法，而虚拟机栈为虚拟机执行Java方法（字节码服务）。</p><p id="26973900-ec75-45d1-8af2-32a276d8c4cf" class="">两者互相调用，互相在各自的栈中跳转。</p><p id="cdbd74a6-91da-4d53-b4e3-ea5163ed10de" class="">HotSpot虚拟机将本地方法栈和虚拟机栈已经合二为一。</p><p id="f6e15990-d465-4052-ac15-90e746b7479e" class="">《Java虚拟机规范》对本地方法使用的语言、方式和数据结构没有任何强制规定。</p></blockquote><p id="8058d61d-fd87-4b14-8eba-01e35e17e3dd" class="">
+</p><h2 id="77413a08-f12f-4825-9ec0-b34051972385" class="">共享内存区域</h2><h3 id="e17efd3d-2d32-4eb9-8080-1849bda635df" class="">Java堆 Java Heap</h3><figure id="778a2268-4cf5-436b-9401-1e696eddde2b" class="image"><a href="Java内存区域%200d12779646594489a19675375fc61b9c/678.png"><img style="width:1153px" src="Java内存区域%200d12779646594489a19675375fc61b9c/678.png"/></a></figure><blockquote id="64744d68-22f3-4a87-b05e-8b49fd56d2b8" class="block-color-gray_background">Java堆是被所有线程共享的一块内存区域。<p id="2429c4ac-8a8b-4f5a-9371-db1e20cd0b4c" class="">《Java虚拟机规范》所有的对象实例以及数组都应当在堆上分配。</p><p id="2a0993b5-48f7-4fba-9223-713bbc2855d3" class="">大部分基于分代收集理论设计。</p><ul id="dc478325-3533-4c43-9db3-c9f1ab9ea920" class="bulleted-list"><li style="list-style-type:disc">可以通过<code>-Xms</code> 与<code>-Xmx</code>设定堆的大小。</li></ul><ul id="fdc0be40-8e64-4ba9-9499-be1dbe185d4d" class="bulleted-list"><li style="list-style-type:disc"><code>-Xmn</code> 设定新生代的大小。</li></ul><ul id="8aa9306e-6820-4d49-9682-a7ba55e3e7cf" class="bulleted-list"><li style="list-style-type:disc"><code>-XX:Newratio=2</code>: 设置Yong 和 Old的比例，比如值为2，则Old Generation是 Yong Generation的2倍，即Yong Generation占据内存的1/3。</li></ul><ul id="3313edc5-c63f-417e-817d-586f3e1fc7ca" class="bulleted-list"><li style="list-style-type:disc"><code>-XX:Newsize </code>: 设置Yong Generation的初始值大小</li></ul><ul id="8ef3128b-d365-409a-a051-a88428336347" class="bulleted-list"><li style="list-style-type:disc"><code>-XX:Maxnewsize</code>：设置Yong Generation的最大值大小</li></ul><ul id="b9cb2d0c-4bc4-43ba-b325-02a017f0ddc0" class="bulleted-list"><li style="list-style-type:disc"><code>-XX:Surviorratio=8 </code>: 设置Eden和一个Suivior的比例，比如值为8，Eden:From:To = 8:1:1</li></ul><p id="18bdc5e5-9f80-4d5c-a944-0c7e2a43f92b" class="">如果堆中没有内存完成实例分配切堆已无法扩展时则触发OutOfMemoryError异常。</p></blockquote><p id="1bbf705e-2065-4cf4-9cd5-0b8293f57075" class="">
+</p><h3 id="baefcc43-76c7-4071-b684-0c1e325ddc3c" class="">方法区 Method Area &amp; Non-Heap</h3><blockquote id="9c557685-b5a3-493b-944c-44994d2941f3" class="block-color-gray_background">各个线程的共享区域<p id="6071ee15-239f-4324-a6e8-63120f2c6a25" class="">它用来存储被虚拟机加载的类型信息、常量、静态变量、即时编译器编译后的代码缓存等。</p><p id="b9b7d3fb-6d1d-4223-892c-b2e98bbbf0b5" class=""><code><em><strong>-XX:Permsize</strong></em></code><em><strong> 来设置永久代初始分配空间。默认值是 20.75M
+</strong></em><code><em><strong>-XX:MaxPermsize</strong></em></code><em><strong> 来设定永久代最大可分配空间。32 位机器默认是 64M，64 位机器模式是 82M
+当 JVM 加载的类信息容量超过了这个值，会报异常 OutOfMemoryError:PermGen space。</strong></em></p><p id="c74040c5-1e0e-4f35-a2eb-ba095290da87" class="">
+</p><p id="375d0d24-0c57-4a8e-a951-ad463c0b9e11" class=""><em><strong>移除方法区原因（使用永久代Permanent Genration实现的方法区）</strong></em></p><ul id="bf151f63-f1ab-4843-b99c-6784630a9ae0" class="bulleted-list"><li style="list-style-type:disc"><em><strong>参考JEP122</strong></em><em><strong> </strong></em></li></ul><ul id="30f4b8e7-472a-4c5e-aa06-3008e6786777" class="bulleted-list"><li style="list-style-type:disc"><em><strong>对于其他虚拟机来说，不存在永久代的概念（BEA JRockit 、IBM J9）</strong></em></li></ul><ul id="9305df5f-3d9b-4dce-9ddd-3a97155ad4fe" class="bulleted-list"><li style="list-style-type:disc"><em><strong>容易出现内存泄漏，永久代有 -XX:MaxPermSize上限，以前sun公司有很多有关的Bug</strong></em></li></ul><ul id="fe37e39f-f66b-4bf9-8c1e-fad4711c5b03" class="bulleted-list"><li style="list-style-type:disc"><em><strong>有极少数方法（</strong></em><code><em><strong>String::intern()</strong></em></code><em><strong>）方法会因永久代的原因而导致不同的虚拟机有不同表现</strong></em></li></ul><ul id="6580b04c-6558-40a3-b3c4-f9f808a16aad" class="bulleted-list"><li style="list-style-type:disc"><em><strong>收购BEA JRockit后，将优秀功能合成HotSpot时，前者无永久代概念，合成困难</strong></em></li></ul><p id="52c9d55d-1341-4681-b226-f5b7d3d7038b" class="">
+</p><p id="be7d842f-04ad-4640-aee3-39aba3e31c35" class=""><strong>运行时常量池 Runtime Constant Pool - 方法区的一部分</strong><div class="indented"><p id="a637aa3d-57e0-4573-a747-b9d00b4f6821" class="">用于存放编译期间生成的各种字面量和符号引用。</p><p id="215d3013-6094-46d8-8c31-be6d2a37b256" class="">字面量 &amp; 符号引用说明</p><figure id="9003adc4-145c-4bd2-b662-cf89b3e4e2a8"><a href="https://vitzhou.top/20200821/" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title"></div></div><div class="bookmark-href">https://vitzhou.top/20200821/</div></div></a></figure><p id="413c5219-e498-46be-9bb5-976a97f638f3" class="">具备动态性 - <code><em>String::intern()</em></code></p></div></p></blockquote><p id="00f385eb-29ec-44df-9e20-c242b1edadaa" class="">
+</p><h3 id="13bb1c21-2d51-4067-bc1f-2a95458e914e" class="">元空间 Meta Space</h3><blockquote id="c3210feb-200c-4199-afb4-3f8e5c03bbd3" class="block-color-gray_background">1.8就把方法区改用元空间了。类的元信息被存储在元空间中。元空间没有使用堆内存，而是与堆不相连的<strong>本地内存区域</strong>。所以，理论上系统可以使用的内存有多大，元空间就有多大，所以不会出现永久代存在时的内存溢出问题。<p id="80bd0908-b1a9-4983-bddc-455448debfac" class="">可以通过 <code>-XX:MetaspaceSize</code> 和 <code>-XX:MaxMetaspaceSize</code> 来指定元空间的大小。</p><p id="1306a9fc-01f7-4a18-b36e-f777919a26be" class="">metaspace其实由两大部分组成</p><ul id="f806b2d9-c433-4a0d-aeac-640d37591ea9" class="bulleted-list"><li style="list-style-type:disc">Klass Metaspace</li></ul><ul id="2e73ffd4-c7b6-4e47-90d6-05a712f5a481" class="bulleted-list"><li style="list-style-type:disc">NoKlass Metaspace</li></ul><p id="0520f82c-4f22-4152-9e53-f9bab818d189" class="">Klass Metaspace就是用来存klass的，klass是我们熟知的class文件在jvm里的运行时数据结构，不过有点要提的是我们看到的类似A.class其实是存在heap里的，是java.lang.Class的一个对象实例。这块内存是紧接着Heap的，和我们之前的perm一样，这块内存大小可通过<code>-XX:CompressedClassSpaceSize</code>参数来控制，这个参数前面提到了默认是1G，但是这块内存也可以没有，假如没有开启压缩指针就不会有这块内存，这种情况下klass都会存在NoKlass Metaspace里，另外如果我们把-Xmx设置大于32G的话，其实也是没有这块内存的，因为会这么大内存会关闭压缩指针开关。还有就是这块内存最多只会存在一块。</p><p id="9b9fc364-50a4-4f2c-8f0c-30e3edff0b24" class="">NoKlass Metaspace专门来存klass相关的其他的内容，比如method，constantPool等，这块内存是由多块内存组合起来的，所以可以认为是不连续的内存块组成的。这块内存是必须的，虽然叫做NoKlass Metaspace，但是也其实可以存klass的内容，上面已经提到了对应场景。</p><p id="990d83a5-8fe6-4e47-9368-3576d9bdf9cd" class="">Klass Metaspace和NoKlass Mestaspace都是所有classloader共享的，所以类加载器们要分配内存，但是每个类加载器都有一个SpaceManager，来管理属于这个类加载的内存小块。如果Klass Metaspace用完了，那就会OOM了，不过一般情况下不会，NoKlass Mestaspace是由一块块内存慢慢组合起来的，在没有达到限制条件的情况下，会不断加长这条链，让它可以持续工作。</p></blockquote><p id="27746c3f-9ff9-4f69-82a0-51b4c107b1fd" class="">
+</p><h3 id="7fae985b-3147-4eef-9727-000f107694f4" class="">Method Area To Meta Space</h3><figure id="8ac701cf-949f-4472-a76d-90506f255b99" class="image"><a href="Java内存区域%200d12779646594489a19675375fc61b9c/345.png"><img style="width:1781px" src="Java内存区域%200d12779646594489a19675375fc61b9c/345.png"/></a></figure><blockquote id="be0427a1-0c5a-46a8-b93e-6c5c39c38fdc" class="block-color-gray_background"><strong> 方法区 至 元空间 优化过程：</strong><ol type="1" id="2df97da1-d28f-4d0d-b4b8-387414996dd8" class="numbered-list" start="1"><li>JDK1.6之前均放在方法区内。</li></ol><ol type="1" id="88a814ac-6066-4d8a-a6b7-8567730a2d7b" class="numbered-list" start="2"><li>JDK1.7改动将 静态变量 和 运行时常量 提取到 堆。</li></ol><ol type="1" id="8a179ead-41ca-4447-83df-54b80801e924" class="numbered-list" start="3"><li>JDK1.8将剩余的 类信息 和 代码缓存 移动至 元空间。</li></ol></blockquote><p id="d793a09e-da19-41e9-9c24-b3df7015d5a7" class="">
+</p><h2 id="26c2790c-1591-4189-a934-ba08877c9b24" class="">直接内存 Direct Memory</h2><blockquote id="ff220353-c759-4519-a8ba-f13ae5e4d9bd" class="block-color-gray_background">直接内存并不是虚拟机运行时内存的一部分。<p id="f14c6e06-680b-41dc-b9e7-8664bdcfcf85" class="">
+</p><p id="06044e58-ffee-4ada-b75e-068d51aaaaca" class="">在JDK 1.4中新加入了 NIO ( New Iaput/Output) 类，引人了一种基于通道 (Channel)与缓冲区（Buffer）的V/O 方式，它可以使用 Native 函数库直接分配堆外内存，然后通过一个存储在 Java 堆里面的 DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一此场景中显著提高性能，因为避免了在 Java 堆和 Native 堆中来回复制数据显然，本机直接内存的分配不会受到Java 堆大小的限制，但是，既然是内存，则肯定还是会受到本机总内存（包括物理内存、SWAP 分区或者分页文件）大小以及处理器寻址空间的限制，一般服务器管理员配置虚拟机参数时，会根据实际内存去设置-Xmx 等参数信息，但经常忽略掉直接内存，使得各个内存区域总和大于物理内存限制（包括物理的和操作系统级的限制），从而导致动态扩展时出现OutOfMemoryError 异常</p></blockquote><hr id="1bba3fe9-250b-4e2b-9fb6-260597dcd8f8"/><h1 id="a7aab039-7281-440d-bae0-a1c2df85c32e" class="">参考资料</h1><ul id="fcec9bd4-dd3b-4fc0-a2bc-0b349c9d937e" class="bulleted-list"><li style="list-style-type:disc">《深入理解Java虚拟机》</li></ul><ul id="3fd8e9d3-b6ab-4166-a770-0a68066024c3" class="bulleted-list"><li style="list-style-type:disc">内存区域参考 &amp; 永久代改为元空间移除原因<figure id="0368823b-a8de-43f3-9c18-83ddf2708303"><a href="https://segmentfault.com/a/1190000038190582" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">8张图 带你理解Java内存区域</div><div class="bookmark-description">很多人会误以为Java内存区域和内存模型是同一个东西，其实并不是。 Java内存区域是指 JVM运行时将数据分区域存储 ，简单的说就是不同的数据放在不同的地方。通常又叫 运行时数据区域 。 Java内存模型 （JMM）定义了程序中各个变量的访问规则，即在虚拟机中将变量存储到内存和从内存中取出变量这样的底层细节。 1.8 之前： JDK1.8（含）之后： 区别就是 1.8有一个 元数据区替代 方法区 了。 JDK 1.7 其实是并没完全移除方法区，但是不会像1.6以前报 &quot; java.lang.OutOfMemoryError: PermGen space&quot;，而是报 java.lang.OutOfMemoryError: Java heap space 1.7部分内容（比如 常量池、静态变量有方法区转移到了堆） 那么，Java 8 中 PermGen 为什么被移出 HotSpot JVM 了？我总结了两个主要原因（详见： JEP 122: Remove the Permanent Generation ）： 由于 PermGen 内存经常会溢出，引发恼人的 java.lang.OutOfMemoryError: PermGen，因此 JVM 的开发者希望这一块内存可以更灵活地被管理，不要再经常出现这样的 OOM 移除 PermGen 可以促进 HotSpot JVM 与 JRockit VM 的融合，因为 JRockit 没有永久代。 根据上面的各种原因，PermGen 最终被移除， 方法区移至 Metaspace，字符串常量移至 Java Heap 。 引用自https://www.sczyh30.com/posts...</div></div><div class="bookmark-href"><img src="https://cdn.segmentfault.com/r-d25ba612/favicon.ico" class="icon bookmark-icon"/>https://segmentfault.com/a/1190000038190582</div></div><img src="https://cdn.segmentfault.com/r-d25ba612/touch-icon.png" class="bookmark-image"/></a></figure></li></ul><ul id="d4f00c1c-7836-46ed-97f0-ab0af4678241" class="bulleted-list"><li style="list-style-type:disc">永久代被移除原因 JEP122 &amp; JEP156<figure id="976c325e-fb94-4770-bc36-642e090885cd"><a href="https://openjdk.org/jeps/122" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">JEP 122: Remove the Permanent Generation</div><div class="bookmark-description">Remove the permanent generation from the Hotspot JVM and thus the need to tune the size of the permanent generation. Extending Class Data Sharing to application classes. Reducing the memory needed for class metadata. Enabling asynchronous collection of class metadata.</div></div><div class="bookmark-href"><img src="https://openjdk.org/images/nanoduke.ico" class="icon bookmark-icon"/>https://openjdk.org/jeps/122</div></div></a></figure><ul id="2471ab3a-7fac-4d30-bfdb-6d694e328c68" class="toggle"><li><details open=""><summary>摘抄原文</summary><blockquote id="5dad7142-1646-40e4-bdde-abdda1dff766" class="block-color-gray_background"><strong>Motivation</strong><p id="6aa7ca5c-9072-483d-929b-5bca2b339671" class="">This is part of the JRockit and Hotspot convergence effort. JRockit customers do not need to configure the permanent generation (since JRockit does not have a permanent generation) and are accustomed to not configuring the permanent generation.</p><p id="7141c6eb-d67b-4810-b707-9572ce5782df" class=""><strong>动机</strong></p><p id="389d115d-64ea-4e07-a979-1cfb8b5ed432" class="">这是 JRockit 和 Hotspot 融合工作的一部分。JRockit客户不需要配置永久代（因为JRockit没有永久代），习惯不配置永久代。</p><p id="fefe691e-1ca4-4b84-a1b1-90839c272f31" class=""><strong>Description</strong></p><p id="f4138fdb-2708-4a10-9db8-20e52e7a16b5" class="">Move part of the contents of the permanent generation in Hotspot to the Java heap and the remainder to native memory.</p><p id="88fedde2-7dcc-4bc4-994b-a7e487f74575" class="">Hotspot&#x27;s representation of Java classes (referred to here as class meta-data) is currently stored in a portion of the Java heap referred to as the permanent generation. In addition, interned Strings and class static variables are stored in the permanent generation. The permanent generation is managed by Hotspot and must have enough room for all the class meta-data, interned Strings and class statics used by the Java application. Class metadata and statics are allocated in the permanent generation when a class is loaded and are garbage collected from the permanent generation when the class is unloaded. Interned Strings are also garbage collected when the permanent generation is GC&#x27;ed.</p><p id="354b2f27-9846-47a9-a799-0d46aa5f9bcc" class="">The proposed implementation will allocate class meta-data in native memory and move interned Strings and class statics to the Java heap. Hotspot will explicitly allocate and free the native memory for the class meta-data. Allocation of new class meta-data would be limited by the amount of available native memory rather than fixed by the value of -XX:MaxPermSize, whether the default or specified on the command line.</p><p id="e661f014-7d37-4d78-91e8-3f438b6359d2" class="">Allocation of native memory for class meta-data will be done in blocks of a size large enough to fit multiple pieces of class meta-data. Each block will be associated with a class loader and all class meta-data loaded by that class loader will be allocated by Hotspot from the block for that class loader. Additional blocks will be allocated for a class loader as needed. The block sizes will vary depending on the behavior of the application. The sizes will be chosen so as to limit internal and external fragmentation. Freeing the space for the class meta-data would be done when the class loader dies by freeing all the blocks associated with the class loader. Class meta-data will not be moved during the life of the class.</p><p id="cfbdf6db-ceb2-4d7c-831b-703570d5b2a5" class=""><strong>描述</strong></p><p id="6b94adf2-6f43-4508-b522-aaeadbe928d8" class="">将 Hotspot 中永久代的部分内容移动到 Java 堆中，将剩余部分移动到本机内存中。</p><p id="6dbf66d3-e25f-4638-93d7-a7ff73efea58" class="">Hotspot 的 Java 类表示（这里称为类元数据）当前存储在称为永久代的 Java 堆的一部分中。此外，interned Strings 和 class static 变量存储在永久代中。永久代由 Hotspot 管理，并且必须为 Java 应用程序使用的所有类元数据、内部字符串和类静态数据提供足够的空间。加载类时在永久代中分配类元数据和静态数据，并在卸载类时从永久代中进行垃圾收集。当永久代被 GC&#x27;ed 时，Interned Strings 也会被垃圾收集。</p><p id="b910b68f-0217-4c24-a275-b2f8d195d2b7" class="">提议的实现将在本机内存中分配类元数据，并将内部字符串和类静态数据移动到 Java 堆。Hotspot 将为类元数据显式分配和释放本机内存。新类元数据的分配将受到可用本机内存量的限制，而不是由 -XX:MaxPermSize 的值固定，无论是默认值还是在命令行上指定。</p><p id="fe629c58-f6ab-493a-934c-11128d0af7fc" class="">为类元数据分配本机内存将在一个足够大的块中完成，以容纳多条类元数据。每个块将与一个类加载器相关联，并且由该类加载器加载的所有类元数据将由 Hotspot 从该类加载器的块中分配。将根据需要为类加载器分配额外的块。块大小将根据应用程序的行为而有所不同。将选择大小以限制内部和外部碎片。当类加载器终止时，通过释放与类加载器关联的所有块来释放类元数据的空间。类元数据在类的生命周期内不会被移动。</p><p id="6f288fe1-7e75-4d64-9310-d0ad6d1a2df4" class=""><strong><strong>JEP 156: G1 GC: Reduce need for full GCs</strong></strong> </p><p id="802e8a86-87d9-4421-a0c8-7f64324194d5" class=""><strong>Dependences</strong></p><p id="bfb778b2-c5b2-453f-a5cf-8f45f01bb01e" class="">This project is not immediately dependent on the removal of the permanent generation (<a href="https://bugs.openjdk.java.net/browse/JDK-8046112">JEP 122</a>), but the implementation of class unloading in G1 will be simplified by that work, so it makes sense to wait with this project until the permanent generation is gone.</p><p id="4e72417f-0c2e-4635-a018-20b9b46e6bdc" class="">该项目不会立即依赖永久代（<a href="https://bugs.openjdk.java.net/browse/JDK-8046112">JEP 122</a>）的删除，但 G1 中类卸载的实现将通过该工作得到简化，因此等待该项目直到永久代消失是有意义的。</p></blockquote></details></li></ul></li></ul><ul id="f14ba96c-c193-43f3-b18e-887372d9d0d4" class="bulleted-list"><li style="list-style-type:disc">元空间详解与设置参数<figure id="c8334323-421c-42fe-a995-1c0632cbcedd"><a href="http://lovestblog.cn/blog/2016/10/29/metaspace/" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">JVM源码分析之Metaspace解密</div><div class="bookmark-description">metaspace，顾名思义，元数据空间，专门用来存元数据的，它是jdk8里特有的数据结构用来替代perm，这块空间很有自己的特点，前段时间公司这块的问题太多了，主要是因为升级了中间件所致，看到大家讨论来讨论去，看得出很多人对metaspace还是模棱两可，不是很了解它，因此我觉得有必要写篇文章来介绍一下它，解开它神秘的面纱，当我们再次碰到它的相关问题的时候不会再感到束手无策。 ...</div></div><div class="bookmark-href"><img src="http://lovestblog.cn/images/favicon.ico" class="icon bookmark-icon"/>http://lovestblog.cn/blog/2016/10/29/metaspace/</div></div><img src="http://lovestblog.cn/images/gzh.jpg" class="bookmark-image"/></a></figure></li></ul><ul id="329dca24-35a3-4b78-a697-856d8feae705" class="bulleted-list"><li style="list-style-type:disc">元空间GC问题<figure id="f5e31fd4-9d80-4bef-a677-1b7ebdf3e882"><a href="https://javakk.com/854.html" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">metaspace会gc吗</div><div class="bookmark-description">我们将在GC日志中打印元空间的大小。假设我们设置了 -XX:MetaspaceSize=100M -XX:MaxMetaspaceSize=100M 这意味着一旦metaspace的使用量达到100M就应该触发一个metaspace fulGC ，但实际上我们从GC日志中发现了这个问题，metaspace只使用了70899KB。 [Full GC (Metadata GC Threshold) [PSYoungGen: 5092K-&gt;0K(132096K)] [ParOldGen: 85822K-&gt;60451K(181760K)] 90914K-&gt;60451K(313856K), [Metaspace: 70899K-&gt;70899K(1136640K)], 0.1482072 secs] [Times: user=0.52 sys=0.00, real=0.15 secs] 首先，让我们看看打印这行gc日志的代码，这实际上取决于metaspace使用的大小。 void MetaspaceAux::print_metaspace_change(size_t prev_metadata_used) { gclog_or_tty-&gt;print(&quot;, [Metaspace:&quot;); if (PrintGCDetails &amp;&amp; Verbose) { gclog_or_tty-&gt;print(&quot; &quot; SIZE_FORMAT &quot;-&gt;&quot; SIZE_FORMAT &quot;(&quot; SIZE_FORMAT &quot;)&quot;, prev_metadata_used, used_bytes(), reserved_bytes()); } else</div></div><div class="bookmark-href"><img src="https://javakk.com/wp-content/uploads/2020/02/cropped-logo-192x192.jpeg" class="icon bookmark-icon"/>https://javakk.com/854.html</div></div><img src="https://javakk.com/wp-content/uploads/2020/03/javakk.com_2020-03-21_15-46-12-750x500.jpg" class="bookmark-image"/></a></figure></li></ul><p id="9fb2d6a0-4963-4aee-817b-f2139b3a8e40" class="">
+</p></div></article></body></html>

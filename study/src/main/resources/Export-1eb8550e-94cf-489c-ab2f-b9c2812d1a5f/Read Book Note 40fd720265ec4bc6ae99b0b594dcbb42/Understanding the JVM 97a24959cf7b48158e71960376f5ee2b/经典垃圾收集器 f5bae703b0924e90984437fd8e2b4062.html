@@ -1,0 +1,682 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>经典垃圾收集器</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="f5bae703-b092-4e90-9844-37fd8e2b4062" class="page sans"><header><h1 class="page-title">经典垃圾收集器</h1></header><div class="page-body"><nav id="d950098e-6fd2-4344-a5c3-4ef64cbed4dd" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#2204ec8d-6342-4fec-9753-f5dae89a288f">垃圾回收器</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#cdc6f9bb-d0c6-4749-9022-95f695f8318d">Serial</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#a56b2bbe-f811-4d93-8ce1-f6dc08997335">ParNew</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#6144645d-a618-4eac-818e-7de2386b007c">Paraller Scavenge ⭐️⭐️⭐️⭐️⭐️</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#f544c4a3-f26f-46b9-8a95-0f5b57b0e46e">Serial Old</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#c468ef7f-b0b9-4118-8c58-8aaa8dd192e4">Paraller Old</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#e32be439-b4e4-4527-b410-7ca898b158f4">CMS - Concurrent Mark Sweep</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#77829a60-a0a0-4981-b61c-a83b5f764b89">G1 - Garbage First ⭐️⭐️⭐️⭐️⭐️ </a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#e71a78d2-6df2-4afc-9e1e-2fcc1a2e8147"><a href="https://www.notion.so/Garbage-First-Tuning-Guide-dd1c0219457c4364a279ab61e824ae32"><span class="icon">♻️</span>Garbage First Tuning Guide</a> </a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#bb697144-075c-4219-a567-0164b7bfcccd">参考资料</a></div></nav><figure id="d311fe1a-d6af-4a0f-a1d5-ebed43813462" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/HotSpot虚拟机垃圾收集器.png"><img style="width:709px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/HotSpot虚拟机垃圾收集器.png"/></a></figure><figure id="c1bd5b2e-858b-46ae-9241-f269c4f1970f" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/2.png"><img style="width:2216px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/2.png"/></a></figure><h1 id="2204ec8d-6342-4fec-9753-f5dae89a288f" class="">垃圾回收器</h1><blockquote id="cf7cdade-968c-4b36-8fab-c006c9a3627c" class="block-color-gray_background">Java内存回收<h3 id="74037a4e-9959-40c8-a101-a356adb337e9" class=""><strong>出现垃圾收集器无法组合使用的原因</strong></h3><p id="cfcf4267-3a6f-48e2-ac71-dc8dbf546350" class="">设计上没有使用相同的方案，如分代框架等。</p><h3 id="bc416cc8-fcee-41eb-89c4-9b34d3d37199" class=""><strong>衡量垃圾收集器</strong></h3><p id="c563bf60-a9b6-499f-9d72-4e742055170e" class="">最重要的指标</p><ul id="790160a0-9c15-4133-855c-c1b0b9d5b83e" class="bulleted-list"><li style="list-style-type:disc">内存占用（<code>Memory Footprint</code>）</li></ul><ul id="6a294001-34ab-4440-93ef-05e85948fde6" class="bulleted-list"><li style="list-style-type:disc">吞吐量（<code>Throughput</code>）</li></ul><ul id="773f2b0b-c51d-48ed-9f03-b6121d664188" class="bulleted-list"><li style="list-style-type:disc">延迟（<code>Latency</code>）</li></ul><h3 id="b49007f3-e4d3-4047-ba9e-4ef0680f7e8c" class=""><strong>并行及并发的概念</strong></h3><p id="a04158a6-9492-4883-9c04-58f65371567a" class="">并行（<code>Parallel</code>）：指多条垃圾收集器线程之间的关系。说明同一时间有多条这样的线程在协同工作，通常默认此时用户线程处于等待状态。</p><p id="2de74d6e-7f06-4821-b379-95c87f21eede" class="">并发（<code>Concurrent</code>）：指垃圾收集线程与用户线程之间的关系，说明同一时间垃圾收集器线程与用户线程都在运行。由于用户线程并未冻结，</p><p id="b3cccee0-91a8-4791-b132-94d973acb02e" class="">所以程序仍然能响应请求，但由于垃圾收集器线程占用了一部分系统资源，此时应用程序的吞吐量将有一定影响。</p><h3 id="dd66cf96-4ac0-4ad9-85c9-f703377e2e60" class=""><strong>吞吐量Throughput</strong></h3><p id="943c8a21-dffb-4873-be74-0f0360abfd9a" class="">吞吐量 = 运行用户代码的时间 /（运行用户代码时间 + 运行垃圾收集时间）</p><p id="2fc1a2f9-ecd8-430f-acd6-e16df489bb35" class="">低停顿适合需要与用户交互或保证服务响应质量的程序。</p><p id="2a71b112-3145-4d6e-a813-08a40fc0cad8" class="">高吞吐量则可以高效率利用处理器资源，适合在后台运算而不需要太多交互的分析任务。</p></blockquote><p id="5aa02a8c-ccae-4bc2-a077-840f0058f7d6" class="">
+</p><h1 id="cdc6f9bb-d0c6-4749-9022-95f695f8318d" class="">Serial</h1><blockquote id="a64b6cdc-7635-4600-9c64-d741c305c4fc" class="block-color-gray_background">新生代垃圾收集器，使用标记-复制算法。<p id="5af634ba-b241-42fb-9004-0fe905f2ae5b" class="">单线程工作，工作时必须STW。</p><p id="1a02dc32-306b-4789-9ff6-3e97e3298cd4" class=""><strong>HotSpot虚拟机运行在客户端模式下的默认新生代收集器。</strong></p><figure id="4471b99a-11b1-43d1-b46e-07e246970d51" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/Serial收集器_拷贝.png"><img style="width:850px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/Serial收集器_拷贝.png"/></a></figure><h2 id="da00cf1d-77b9-4b43-896b-d5a2a5c2782a" class=""><strong>Serial特点：</strong></h2><ul id="19fece0f-68bd-43d9-b374-026765fabb21" class="bulleted-list"><li style="list-style-type:disc">简单而高效（对比其他的单线程收集器）</li></ul><ul id="29b579b3-3370-4e16-9e7d-12600ed3a213" class="bulleted-list"><li style="list-style-type:disc">对于内存资源受限的环境，是所有收集器里额外内存（Memory Footpriny）占用最小的。</li></ul><ul id="0e35254b-d470-4f2a-9802-99cbad97974d" class="bulleted-list"><li style="list-style-type:disc">对于单核处理器或处理器核心数较少的环境，Servial收集器由于没有线程交互的开销，专心做垃圾收集自然可以获得最高的单线程收集效率。</li></ul><h2 id="3ea27697-ca17-4275-8744-9f77c11df3f1" class=""><strong>Serial场景：</strong></h2><ul id="1d314637-dcfb-4771-95c5-4053c695c6cb" class="bulleted-list"><li style="list-style-type:disc"><strong>用户桌面应用和部分微服务</strong>中，分配给虚拟机的内存不多，收集几十兆-一两百兆的新生代，垃圾收集的停顿可以控制在十几-几十毫秒，只要手机不频繁，总停顿时间可接受。</li></ul></blockquote><h1 id="a56b2bbe-f811-4d93-8ce1-f6dc08997335" class="">ParNew</h1><blockquote id="7407ca29-5647-47cf-8d78-7bac086ed1ec" class="block-color-gray_background">新生代收集器，使用标记-复制算法，并行收集。<p id="3ae66197-4d0c-4d36-9c9e-ddb9558b4f3e" class="">ParNew收集器实质上是Serial收集器的多线程并行版本。</p><p id="32340340-efc1-4312-be2e-06c9284d058b" class="">在JDK7之前是首选的新生代收集器，因为除了Serial收集器就只有它能和CMS收集器配合工作。</p><figure id="f9de13b6-d2ff-40b4-a867-e8ad9f27886a" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/ParNew收集器_拷贝.png"><img style="width:853px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/ParNew收集器_拷贝.png"/></a></figure><h2 id="b110423f-9948-40d5-b6b9-0fe14cc50fda" class=""><strong>ParNew特点：</strong></h2><ul id="f3aa0dce-4cbb-4216-9062-fd23397682f2" class="bulleted-list"><li style="list-style-type:disc">ParNew收集器实质上是Serial收集器的多线程并行版本</li></ul><ul id="1f31ca8e-61d2-489c-925f-f498a1e8c8ac" class="bulleted-list"><li style="list-style-type:disc">单核或者超线程技术下的伪双核，因为存在线程交互的开销等并没有Serial高效</li></ul><ul id="3379136f-c23b-4d46-ace4-de365e95b0bb" class="bulleted-list"><li style="list-style-type:disc">目前普遍多核场景，ParNew对系统资源的高效利用。<code>-XX:ParallelGCThreads</code>控制收集垃圾的线程数量。</li></ul><h2 id="5d045279-35c0-4f29-a754-d46794f0cb76" class=""><strong>ParNew场景：</strong></h2><ul id="cb52f19e-1ead-4c5d-849a-ea744f3bdf9f" class="bulleted-list"><li style="list-style-type:disc">已经退出历史舞台，目前只能通过启用CMS，CMS默认的新生代垃圾回收器。</li></ul></blockquote><h1 id="6144645d-a618-4eac-818e-7de2386b007c" class="">Paraller Scavenge ⭐️⭐️⭐️⭐️⭐️</h1><blockquote id="71fa6b2e-eee2-4a65-9099-897a4dfeedfc" class="block-color-gray_background">新生代收集器，使用标记-复制算法，并行收集。<figure id="0d6b3433-6941-428c-a74a-d30e41e1b39d" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/1.png"><img style="width:845px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/1.png"/></a></figure><h2 id="18eab37f-6dcf-439a-abf2-a15f45d410ae" class=""><strong>Paraller Scavenge特点：</strong></h2><ul id="0d11dfc8-61e7-4f78-80f7-d164dd7c0a25" class="bulleted-list"><li style="list-style-type:disc">Paraller Scavenge的目标是高吞吐量（可控吞吐量 <code>Throughput</code>）<ul id="120d9c55-1975-4a83-8053-1d75cb622098" class="bulleted-list"><li style="list-style-type:circle">最大单次垃圾回收时间（<code>-XX:MaxGCPauseMillis</code>）默认18446744073709551615</li></ul><ul id="8f074dbe-e0d5-4451-b003-1291624f563e" class="bulleted-list"><li style="list-style-type:circle">可控总垃圾回收时间占比（<code>-XX:GCTimeRatio</code>）默认99（1 / 1+99）</li></ul></li></ul><ul id="1744a631-b8c8-4e12-801a-95a3a54e91b4" class="bulleted-list"><li style="list-style-type:disc">自适应调节策略（GC Ergonomics）,<code>-XX:UseAdaptiveSizePolicy</code>根据当前系统的运行情况收集性能监控信息进行动态调整（<code>-Xmn</code> , <code>-XX:SurvivorRatio</code> , <code>-XX:PretenureSizeThreshold</code>）等。</li></ul><h2 id="99afbb32-0083-4ab7-9599-f23401db53d4" class=""><strong>Paraller Scavenge场景：</strong></h2><ul id="ee614a1f-fbb6-45d4-b644-22107d24db7a" class="bulleted-list"><li style="list-style-type:disc">高吞吐量可以最高效率利用处理器资源，尽快完成程序的运算任务，主要是和在后台运算而不需要太多交互的分析任务。允许的值为一个大于0小于100的数</li></ul><ul id="716d9851-6f30-4d0f-95a9-4ca997454332" class="bulleted-list"><li style="list-style-type:disc">目前为JDK8的默认垃圾收集器</li></ul><table id="cb11bc13-4bd4-4934-84e9-6e975791a5c1" class="simple-table"><thead class="simple-table-header"><tr id="fe543498-7789-4cda-9b0d-0cfb81f7ee80"><th id="kq\I" class="block-color-teal_background simple-table-header" style="width:238.5px">参数</th><th id="yn@@" class="block-color-teal_background simple-table-header" style="width:403.5px">作用</th></tr></thead><tbody><tr id="2d6074d8-526a-4ec1-b33b-ec56a3fd5c74"><td id="kq\I" class="" style="width:238.5px">-XX:MaxGCPauseMIllis</td><td id="yn@@" class="" style="width:403.5px">允许的值为一个大于0的毫秒数
+收集器将尽力保证内存回收花费的时间不超过设置的值。
+更关注停顿时间可设置此值</td></tr><tr id="897236eb-1362-4bad-b9a7-1d8f9387a09b"><td id="kq\I" class="" style="width:238.5px">-XX:GCTimeRatio</td><td id="yn@@" class="" style="width:403.5px">允许的值为一个大于0小于100的数
+设置垃圾收集时间占总时间的比率。
+1 : x，设置的就是x的值，占比时间为 1 / (1 + x)。
+更关注吞吐量可设置此值。</td></tr><tr id="4e19fc72-1961-41ac-bce3-4ceecd7815e9"><td id="kq\I" class="" style="width:238.5px">-XX:UseAdaptiveSizePolity</td><td id="yn@@" class="" style="width:403.5px">自适应调节策略参数，开启后就不需要人工指定
+新生代的大小<code>（-Xmn）</code>
+Eden与Survisor区的比例<code>（XX:SurvivorRatio）</code>
+晋升老年代对象大小<code>（-XX:PretenureSizeThreshold）</code></td></tr></tbody></table></blockquote><h1 id="f544c4a3-f26f-46b9-8a95-0f5b57b0e46e" class="">Serial Old</h1><blockquote id="2168bde5-56b3-4873-845b-15bdd2a40d0a" class="block-color-gray_background">老年代收集器，使用标记-整理算法，单线程工作。<p id="cb839ea1-fedc-4d9a-bbd8-d377a16a04e7" class="">Serial收集器的老年代版本。</p><figure id="a44479d3-5071-430b-bf25-2eea9c52ea3f" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/Serial收集器_拷贝.png"><img style="width:850px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/Serial收集器_拷贝.png"/></a></figure><h2 id="d06e9518-7001-4bf1-8841-95298ae36e4e" class=""><strong>Serial Old特点：</strong></h2><ul id="07157f90-ec56-4c0c-9e0d-34c51a998f5f" class="bulleted-list"><li style="list-style-type:disc">见Serial特点 </li></ul><h2 id="df474c4c-e52a-41d9-8708-293ad03ca279" class=""><strong>Serial Old场景：</strong></h2><ul id="391b35ea-85a1-4eae-87b4-d020e4540c4c" class="bulleted-list"><li style="list-style-type:disc">Jdk5以及之前版本中与Paraller Scavenge配合使用。</li></ul><ul id="c5d9edd6-240b-4973-89b8-c05f0c1f0284" class="bulleted-list"><li style="list-style-type:disc">客户端模式下的HotSpot虚拟机适用。</li></ul><ul id="2e431d53-0a92-44f8-8de2-8f200580294e" class="bulleted-list"><li style="list-style-type:disc">CMS收集器发生失败的单线程收集后备预案，发生Concurrent Mode Failure时使用。</li></ul></blockquote><h1 id="c468ef7f-b0b9-4118-8c58-8aaa8dd192e4" class="">Paraller Old</h1><blockquote id="6dbb9c30-c994-45e0-80a9-05e34a30896c" class="block-color-gray_background">老年代收集器，使用标记-整理算法，并行收集。<p id="1d978981-c2c0-42f1-bc30-17d9d78a48e5" class="">Paraller Scavenge的老年代版本。</p><figure id="6348e5a2-3254-4135-bbec-1c5c7714f9cf" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/1.png"><img style="width:845px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/1.png"/></a></figure><h2 id="bf429d30-3b23-4909-95d0-fa68a99bffc7" class=""><strong>Paraller Old特点：</strong></h2><ul id="c26518ab-8f88-41f5-bc31-225b9c360953" class="bulleted-list"><li style="list-style-type:disc">多线程并行收集垃圾</li></ul><h2 id="3167c990-ccaa-4bd4-a93d-a8b4bc4c1300" class=""><strong>Paraller Old场景：</strong></h2><ul id="2cbb19ea-2bc5-430c-b01c-eeb856e71401" class="bulleted-list"><li style="list-style-type:disc">作为高吞吐量组合替代jdk6之前的Parller Scavege的老年代单线程回收器Serial Old(PS MarkSweep)。</li></ul></blockquote><h1 id="e32be439-b4e4-4527-b410-7ca898b158f4" class="">CMS - Concurrent Mark Sweep</h1><blockquote id="8b63322c-4f58-4281-a916-87056da78a98" class="block-color-gray_background">老年代收集器,使用标记-清除算法，并发工作。<figure id="443b56db-22e4-4d5c-846f-3c5eec7a6f94" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/Concurrent_Mark_Sweep_收集器_拷贝.png"><img style="width:672px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/Concurrent_Mark_Sweep_收集器_拷贝.png"/></a></figure><h2 id="c1a88d3d-c44c-486c-b69c-de3384f5ba3a" class="">CMS触发时机：<strong>老年代使用空间到达一定比例。</strong></h2><p id="75851d64-d354-459a-8a75-b53b5a1f11f2" class="">预留的空间：在<code>JDK5</code>默认配置下，CMS收集器当老年代使用了<code>68%</code>的空间后就会被激活，可以通过<code>-XX:CMSInitiatingOccupancyFraction</code>值来提高CMS的触发百分比，降低回收频率。到<code>JDK6</code>默认值提升至<code>92%</code>。</p><h2 id="a2cd25fd-7806-4dd1-b18d-1adfb4486070" class=""><strong>CMS特点：</strong></h2><ul id="665af2ac-c7f5-48b1-a769-3a19cb3a623f" class="bulleted-list"><li style="list-style-type:disc">并发收集，低停顿时间。</li></ul><ul id="62b80a4b-ab07-40f4-b93d-6db8365ab5f2" class="bulleted-list"><li style="list-style-type:disc">HotSpot虚拟机首款追求并发收集低停顿的垃圾收集器。</li></ul><h2 id="fffeec4b-b5ea-49da-a48d-d7c1996495f9" class=""><strong>CMS场景：</strong></h2><ul id="3790db15-241b-42bf-9296-b5b2aa938b9c" class="bulleted-list"><li style="list-style-type:disc">算是并发收集划时代的产物</li></ul><ul id="b460fc08-2d9d-40ac-9584-b24b60d83cbd" class="bulleted-list"><li style="list-style-type:disc">小内存下CMS表现优于G1（平衡点6-8G）</li></ul><ul id="940dbc30-c6da-4be3-a7d5-379f52977058" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-red">官方不推荐使用 - JEP 291  JDK9 </mark><mark class="highlight-red"><a href="https://openjdk.org/jeps/291">https://openjdk.org/jeps/291</a></mark></li></ul><ul id="3ec4836a-76d3-4ec1-8263-422fa8ffb416" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-red">官方弃用 - JEP 363 JDK14 </mark><mark class="highlight-red"><a href="https://openjdk.org/jeps/363">https://openjdk.org/jeps/363</a></mark></li></ul><h2 id="d9df04b7-0066-48a3-ac43-ef44e3bcb532" class=""><strong>CMS工作过程：</strong></h2><ol type="1" id="ba0897c1-1ccc-4851-9835-52d162ebc9ce" class="numbered-list" start="1"><li>初始标记（CMS initial mark）<code>STW</code><p id="3c60da4a-b897-4e50-bf0d-20a79a031412" class="">标记GC Roots能直接关联到的对象，很快。</p></li></ol><ol type="1" id="517d8939-0a45-40b5-9701-ca6ac2d78d79" class="numbered-list" start="2"><li>并发标记（CMS concurrent mark）<p id="c0ca6345-63d6-42b2-886b-131a432da2d1" class="">从直接关联对象开始遍历对象图，耗时较长但不需要停止用户线程。</p></li></ol><ol type="1" id="6c742a2c-a8ff-4e44-8f9e-1e35015215b8" class="numbered-list" start="3"><li>重新标记（CMS remark）<code>STW</code><p id="cbdd2c87-7689-424f-ab5f-f7d0b4530546" class="">修正并发标记期间变动的引用，增量更新式重新扫描灰色结点，耗时多于初始标记，少于并发标记。</p></li></ol><ol type="1" id="12864d07-d1e9-42e5-9a88-48d10641adcc" class="numbered-list" start="4"><li>并发清除（CMS concurrent sweep）<p id="21575de2-e34f-4d9b-a2ea-9a387408e77b" class="">清理删除标记阶段判定死亡的对象，由于直接清理不移动对象，所以可并发。</p></li></ol><h2 id="e94e999f-8e89-4c75-aa09-ab368138d2d8" class=""><strong>总耗时最长的两个阶段，并发标记和并发清除不需要STW，和用户线程一起工作。</strong></h2><h2 id="d0c515c0-dbd4-427c-a483-383346405099" class=""><strong>CMS的缺点：</strong></h2><ul id="170a4f9e-f141-42dd-949d-8fd59d890b20" class="bulleted-list"><li style="list-style-type:disc"><strong>对处理器资源非常敏感。</strong><blockquote id="ab0575dc-4848-4c97-b01c-a79fd04c2f60" class="block-color-gray_background">并发设计的回收都敏感。<p id="627605bd-a505-4c67-ae78-6fe7aeea92ae" class="">在并发阶段虽然用户线程不会停顿，但会因为占用部分线程而导致应用程序变慢，降低吞吐量。</p><p id="9ff03ed2-af9e-4fea-be9f-5f1a2777b7b2" class=""><strong>CMS默认启动的回收线程树是（处理器核心+3）/ 4。</strong>处理器核心在四个或以上，垃圾收集线程只占用不超过25%的处理器运算资源。</p><p id="c0576f31-b39a-4a5a-b2b4-eb517ecbdd6b" class="">但当处理器核心数不足4个时，CMS对用户程序的影响就可能变得很大。如果应用本身的处理器负载就很高，还要分出一般运算能力</p><p id="5f789598-65ea-4ad0-95aa-203ea7ae7e14" class="">去执行垃圾收集，会导致用户程序执行速度忽然大幅降低。</p><p id="7ebcb870-072e-461b-bd98-c8f435517af6" class="">为了缓解这种情况，虚拟机提供了一种称为“<strong>增量式并发收集器</strong>”（<code>Incremental Concurrent Mark Sweep/i-CMS</code>）的CMS收集器变种，</p><p id="3f161b4f-2c34-4615-8621-b72de063b194" class="">在并发标记、清理的时候让收集器线程和用户线程交替运行，尽量减少垃圾收集线程的独占资源的时间，这样整个垃圾收集过程会变长，</p><p id="2db46504-7eac-4e02-ae9f-317ea6662b4f" class="">但对用户程序的影响会显得较少一些。实践证明，效果一般，<code>JDK7</code>开始，<code>i-CMS</code>就被声明为<code>deprecated</code>，在JDK9被完全废弃。</p></blockquote></li></ul><ul id="35cdefa1-30ef-442b-8096-bb63827125d8" class="bulleted-list"><li style="list-style-type:disc"><strong>无法处理“浮动垃圾”（Floating Garbage）</strong><blockquote id="1f9b1443-7e8b-4463-b93b-3a54801eeaa1" class="">并发标记和并发清理阶段，用户线程还在运行，运行就可能有新的垃圾对象产生，这部分对象是在标记过程结束后的。<p id="50d3af9f-92ed-414f-afbc-d5104156d8f5" class="">同样由于垃圾收集阶段用户线程还在执行，所以需要预留足够内存空间提供给用户线程，如果预留的空间无法满足程序分配新对象的需求，就会出现一次“并发失败”（<code>Concurrent Mode Failure</code>）,这时虚拟机不得不启动预备方案，冻结用户线程的执行，临时启动<code>Serial Old</code>收集器重新进行老年代的垃圾收集。提前触发一次<code>Full GC</code>。</p><p id="e361bd26-c503-46e0-92fd-3a19e9aa9b7d" class="">预留的空间：在<code>JDK5</code>默认配置下，CMS收集器当老年代使用了<code>68%</code>的空间后就会被激活，可以通过<code>-XX:CMSInitiatingOccupancyFraction</code>值来提高CMS的触发百分比，降低回收频率。到<code>JDK6</code>默认值提升至<code>92%</code>。</p></blockquote></li></ul><ul id="1cd53e3e-2dd9-4c62-b07b-ea3d8db1a6d0" class="bulleted-list"><li style="list-style-type:disc"><strong>基于标记-清除算法，存在大量空间碎片，大对象分配问题</strong><blockquote id="dd12510b-8fa5-4153-abd6-dc34b9cc22fa" class="">CMS是一款基于“标记-清除”算法实现的收集器，意味着进行垃圾收集后是会产生空间碎片的。空间碎片过多时，往往无法找到足够的连续空间来分配大对象，进而不得不触发一次<code>Full GC</code>，为了解决这个问题，CMS收集<code>-XX:UseCMSCompactAtFullCollection</code>开关的参数(默认开启，<code>JDK9</code>开始废弃)，用于在<code>CMS</code>收集器不得不进行<code>Full GC</code>时开启内存碎片的合并整理过程，由于移动对象<code>CMS</code>收集器无法并发，因此这样会导致停顿时间变长，因此还有一个<code>-XX:CMSFullGCBeforeCompaction</code>(<code>JDK9</code>开始废弃)，这个参数要求CMS收集器在执行过若干次不整理空间的<code>Full GC</code>之后，下一次<code>Full GC</code>前会先进行碎片整理（默认值是0，表示每次进入<code>Full GC</code>时都进行碎片整理）</blockquote><p id="fa15c6c2-2f7e-48b0-950a-d5c95f0fa0f9" class="">
+</p></li></ul></blockquote><h1 id="77829a60-a0a0-4981-b61c-a83b5f764b89" class="">G1 - Garbage First ⭐️⭐️⭐️⭐️⭐️ </h1><h2 id="e71a78d2-6df2-4afc-9e1e-2fcc1a2e8147" class=""><a href="https://www.notion.so/Garbage-First-Tuning-Guide-dd1c0219457c4364a279ab61e824ae32"><span class="icon">♻️</span>Garbage First Tuning Guide</a> </h2><blockquote id="1d507893-8832-4e40-9477-1dd21b026df2" class="block-color-gray_background">Garbage First 收集器简称G1，是垃圾收集器技术发展史上的里程碑式的成果，<p id="1b910443-71b1-4221-b3ea-f4c0de83d478" class="">开创了收集器面向局部收集的设计思路和基于Region的内存布局形式。</p><p id="fd3aa68d-2934-4d6f-840d-7e6a086c17bd" class="">G1是一款主要面向服务端应用的垃圾收集器，被赋予替代CMS的期望。</p><p id="3eb858c3-5f80-4927-a3d0-8d1e9574941d" class=""><code>JDK9</code>发布后，<code>G1</code>宣告取代了<code>Parallel Scavenge + Parallel Old</code>组合，</p><p id="9fb88a8d-1c3a-48b8-9335-b33e31a77828" class="">成为收集器服务端模式下的默认垃圾收集器，而CMS则被声明为不推荐使用（Deprecate）。</p><figure id="6fc373cb-ce27-4725-a5d7-05211d818c7e" class="image"><a href="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/G1收集器运行示意图_拷贝.png"><img style="width:999px" src="经典垃圾收集器%20f5bae703b0924e90984437fd8e2b4062/G1收集器运行示意图_拷贝.png"/></a></figure><h2 id="cf55d4af-3f6d-4a5f-8770-fa57102ef97c" class="">G1特点：</h2><ul id="e8956641-d9a5-47ee-95b0-0c51ecadb90f" class="bulleted-list"><li style="list-style-type:disc">基于停顿时间模型</li></ul><ul id="c2bc3e3d-699c-409d-9b78-0fb3fb840f13" class="bulleted-list"><li style="list-style-type:disc">基于Region布局，新生代老年代</li></ul><ul id="d18f1e42-9eda-4e52-b4a1-3061d8401f28" class="bulleted-list"><li style="list-style-type:disc">并发标记回收基于SATB+除并发标记外其他均为STW，故无浮动垃圾产生。</li></ul><ul id="097472cb-f063-464b-b74c-5cd66921c93a" class="bulleted-list"><li style="list-style-type:disc">收集器横跨新老代收集</li></ul><ul id="23aca18a-e0ce-4e62-b623-c37487ce4d34" class="bulleted-list"><li style="list-style-type:disc">按照收益进行最具价值的动态回收，新生代全量+老年代局部</li></ul><ul id="b4d51446-b949-461a-9b8e-e1a1c232185c" class="bulleted-list"><li style="list-style-type:disc">特殊的Humongous区域，存放大对象。大多数行为将Humongous当作老年代的一部分看待。</li></ul><h2 id="99306e6e-a9d2-421a-bfba-7287ab40d7b2" class="">G1场景：</h2><ul id="c3595665-2315-42d4-9e17-eaffb1278856" class="bulleted-list"><li style="list-style-type:disc">JDK9之后取代Paraller Scavenge+Paraller Old称为默认收集器。</li></ul><ul id="67d31102-9353-425a-9f59-43d8c5cfe0fe" class="bulleted-list"><li style="list-style-type:disc">目前机器硬件环境升级了，采用局部回收机制，更好的管理大内存环境下的垃圾</li></ul><h2 id="40fb564d-11c1-441e-b932-1845f106ac9a" class="">G1工作过程：</h2><ol type="1" id="f62f693a-c48a-4d04-9bab-7a83087045c0" class="numbered-list" start="1"><li>初始标记（Initial Marking）<strong><code>STW</code></strong><p id="c28cfbe3-07dc-4240-b26d-d44e5666f2dc" class="">仅仅知识标记一下GC Roots能关联到的对象，并<strong><code>修改TAMS指针</code></strong>的值，让下一阶段用户线程并发运行时，能正确地在可用Region空间中分配新对象。这个阶段需要停顿线程（根节点枚举都是要STW的），但耗时较短，而且是<strong>借助进行</strong><strong><code>Minor GC</code></strong><strong>的时候同步完成的</strong>，所以G1收集器在这个阶段<strong>实际并没有额外的停顿。</strong></p></li></ol><ol type="1" id="354a672d-8f6b-44c3-9677-7cab45d419fc" class="numbered-list" start="2"><li>并发标记（Concurrent Marking）<p id="69d00f91-9e48-416d-b7eb-8aacec247c95" class="">从GC Roots开始对堆中对象进行可达性分析，递归扫描整个堆的对象图，此阶段耗时较长，但是并发的。</p><p id="a913a4db-b7b6-4b1d-a8ff-b6983cbea5ce" class="">扫描完成后，重新处理<code>SATB</code>记录下的在并发时有引用变动的对象。</p></li></ol><ol type="1" id="01cc2750-8ea2-4ebe-9006-0a86a5968efa" class="numbered-list" start="3"><li>最终标记（Final Marking）<strong><code>STW</code></strong><p id="e925a095-03e7-4f9d-ab23-f1d27877fab1" class="">对用户线程做另一个短暂停顿，用于处理并发阶段结束后仍遗留下来的最后那少量的<code>SATB</code>
+记录。</p></li></ol><ol type="1" id="bf34ff2c-6a5c-47c5-a6a4-97dcb7ccc18a" class="numbered-list" start="4"><li>筛选回收（Live Dats Counting and Exacuation）<strong><code>STW</code></strong><p id="a34d9712-0d15-4198-86ba-02525858782d" class="">负责更新Region的统计数据，对各个Region的回收价值和成本进行排序， 根据用户所期望的停顿时间来制定回收计划，可以自由的选择任意多个Region构成回收集（CSet）</p></li></ol><h3 id="4c4294e9-9b3e-4d1c-b5f3-f0fa794d3a15" class="">G1收集器除了并发标记外，其余阶段也是要完全暂停用户线程的，并非纯粹地追求低延迟，官方给它设定的目标是在延迟可控的情况下获得尽可能高的吞吐量。可以由用户指定期望停顿时间是G1收集器很强大的一个功能。默认的停顿时间为两百毫秒，一般来说回收阶段占几十到一百甚至接近两百毫秒都很正常。</h3><h3 id="be4ed697-3a4d-460f-89cc-ee9ec62460cb" class=""><strong>G1开始，先进的垃圾回收器的设计变为追求能够应付应用的内存分配速率（Allocation Rate），而不是全量清理。</strong></h3><h2 id="dff31774-3920-421a-8e89-5e6baf831463" class="">G1对比CMS：</h2><ul id="5f459ef6-acfe-4e41-ae23-4b8351856fde" class="bulleted-list"><li style="list-style-type:disc">G1<ul id="207803ba-a4e8-45c5-abab-c1ac0bb0c502" class="bulleted-list"><li style="list-style-type:circle">可以指定最大停顿时间</li></ul><ul id="30a4e97b-d17f-4541-abc1-3f3d7f62fbda" class="bulleted-list"><li style="list-style-type:circle">分Region的内存布局、按照收益动态确定回收集带来的好处</li></ul><ul id="8677337f-37e8-4805-a5b6-ca3f2b784e60" class="bulleted-list"><li style="list-style-type:circle">G1整体上是标记-整理算法，Region局部是标记-复制算法。</li></ul></li></ul><ul id="8366b177-89e0-4daa-ac0f-16ba43cb1ab2" class="bulleted-list"><li style="list-style-type:disc">CMS<ul id="4d040a35-03d9-4e63-9445-3db4c888144d" class="bulleted-list"><li style="list-style-type:circle">G1和CMS都使用卡表来处理跨代指针，但G1的卡表实现更为复杂，而且无论扮演的是新生代还是老年代，都必须有一份卡表，这导致G1的记忆集（和其他内存消耗）可能占整个堆容量20%乃至更多内存空间；CMS的卡表相当简单，只有一份，而且只需要处理老年代到新生代的引用，反过来不需要。（代价就是当CMS发生Old GC时，要把整个新生代作为GC Roots来进行扫描）</li></ul><ul id="d628f781-b6df-4fdf-af2a-1c8cd76adbc2" class="bulleted-list"><li style="list-style-type:circle">G1无论是为了垃圾收集产生的内存占用（Footprint）还是程序运行时的额外执行负载（Overload）都要比CMS要高。</li></ul></li></ul><p id="b618b76b-078a-4dda-b01c-aa1e5cd69cfd" class="">
+</p></blockquote><p id="d2f5aed0-9636-4153-b74d-634685ec1b02" class="">
+</p><hr id="a12aae03-4b97-4e3c-8104-43494866771a"/><h1 id="bb697144-075c-4219-a567-0164b7bfcccd" class="">参考资料</h1><ul id="ca2ba79c-9790-4cc1-8de5-b4a5a6dc6d9c" class="bulleted-list"><li style="list-style-type:disc">《深入理解Java虚拟机》</li></ul><ul id="03b99df5-ed6d-499d-a251-0e89801c650d" class="bulleted-list"><li style="list-style-type:disc">各种垃圾回收的说明&amp;日志解说&amp;对比<figure id="f9e7fa46-1a7a-413c-92cb-925537ae533d"><a href="https://plumbr.io/handbook/garbage-collection-algorithms-implementations" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">GC Algorithms: Implementations | Plumbr - User Experience &amp; Application Performance Monitoring</div><div class="bookmark-description">Now that we have reviewed the core concepts behind GC algorithms, let us move to the specific implementations one can find inside the JVM. An important aspect to recognize first is the fact that, for most JVMs out there, two different GC algorithms are needed - one to clean the Young Generation and another to clean the Old Generation.</div></div><div class="bookmark-href"><img src="https://plumbr.io/app/themes/plumbr/dist/images/favicon_9b72e733.png" class="icon bookmark-icon"/>https://plumbr.io/handbook/garbage-collection-algorithms-implementations</div></div><img src="https://plumbr.io/app/uploads/2015/10/plumbr-980.png" class="bookmark-image"/></a><figcaption>各种垃圾回收的说明&amp;日志解说&amp;对比</figcaption></figure></li></ul></div></article></body></html>

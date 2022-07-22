@@ -1,0 +1,677 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>HotSpot的回收算法实现</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="9975959d-9849-4aed-b577-d1cee28c0a55" class="page sans"><header><h1 class="page-title">HotSpot的回收算法实现</h1></header><div class="page-body"><nav id="c61afcf8-7f45-4f03-a4df-0b972865fda5" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#de818359-46c2-4b0d-a256-3198acb86393">根结点枚举</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#31c4f3b2-e9cd-448b-a787-bedd94204d1e">安全点</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#927d36aa-c061-4346-a307-c767597051e4">安全区域</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#39f98460-c080-43a6-9bdd-8200f968d8c7">记忆集与卡表</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#a17da776-e780-439f-b262-fbf83c458e9b">写屏障</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#2791a1c8-922e-4ab9-a663-76e66bfbb861">并发可达性分析</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#380da6a0-ea62-492c-966f-53bf0c8b5b7f">参考资料</a></div></nav><h1 id="de818359-46c2-4b0d-a256-3198acb86393" class="">根结点枚举</h1><blockquote id="967f18e9-a50b-4036-97eb-ec900f680fe1" class="block-color-gray_background">根结点枚举是必须STW的，因为需要一个能保障一致性的快照。<p id="d92f2ca6-cccc-4e2a-8c49-8e79a2069abe" class="">目前采用的都是准确式垃圾收集，所以STW时不需要一个不漏的检查所有执行上下文和全局的引用位置，而虚拟机有办法直接得到哪些地址存放着对象引用。</p><p id="344f5770-0e87-4ba3-8e62-917dd8633201" class=""><strong>HotSpot的解决方案使用一组OopMap的数据结构来实现，类加载完成后，虚拟机会把对象内什么偏移量上是什么类型的数据计算出来，在即时编译时，也会在特定的位置记录下栈里和寄存器里哪些位置是引用，这样扫描时就可以直接得知这些信息，并不需要真正的全量扫描</strong>。</p></blockquote><h1 id="31c4f3b2-e9cd-448b-a787-bedd94204d1e" class="">安全点</h1><blockquote id="56f1c373-994d-43e2-a145-d861c5177ae4" class="block-color-gray_background">特定的位置记录下栈里和寄存器里哪些位置是引用，这些特定位置称为安全点。<p id="a8d7aae5-7e0b-4d02-82ce-d8c5b87cf33f" class="">适用于线程程序执行时的中断。</p><ul id="ac4d18c5-dd71-4b7c-ab59-8e30b7ca86ae" class="bulleted-list"><li style="list-style-type:disc">抢先式中断<p id="6a6595e3-a237-4f47-baf3-dc58baba5e99" class="">系统把所有用户线程中断，如果发现用户线程不在安全点上，恢复该条线程，让它一会重新中断，直到跑到安全点上。</p></li></ul><ul id="df7575f3-7a90-4ce5-b642-1b8104adb214" class="bulleted-list"><li style="list-style-type:disc">主动式中断<p id="a1b8466c-8954-4ae3-b890-2e695d4a31fa" class="">简单的设置一个标志位，各个线程在执行过程中会不断轮询这个标志，一旦发现中断标志为真则在最近的安全点主动中断挂起。</p><p id="b4d84c03-4df7-4340-88d3-53c6f3be590f" class="">所有创建对象和其他需要在堆上分配内存的地方也需要加上标志，为了检查是否将要发生垃圾收集，避免没有足够内存分配新对象。</p><p id="8f8552f5-e5a6-43b7-8f0d-5386cf418679" class="">轮询操作必须足够高效。HotSpot使用内存保护陷阱的方式，精简到只有一条汇编指令。</p><p id="7e2e4cfd-1ad6-4f9e-8b02-c0af14973fef" class="">当需要暂停用户线程时，虚拟机把0*160100的内存页设置为不可读，线程执行到test指令时就会产生一个自陷异常信号，然后预先注册的异常处理器中挂起线程实现等待，这样实现安全点轮询和触发线程中断。</p><figure id="d066ab43-10ac-4207-8366-ef1152400adf" class="image"><a href="HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55/截屏2022-07-08_20.35.19.png"><img style="width:1232px" src="HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55/截屏2022-07-08_20.35.19.png"/></a></figure></li></ul></blockquote><h1 id="927d36aa-c061-4346-a307-c767597051e4" class="">安全区域</h1><blockquote id="0b95f8e6-7928-42fa-a937-0bf9d7274f0e" class="block-color-gray_background">安全区域只是能够确保在某一段代码片段之中，引用关系不会发生变化，因此，在这个区域中任意地方发生垃圾收集都是安全的。<p id="f19a252d-14bf-4f29-83ca-51feba6f1e19" class="">处理线程未执行时的情况，比如Sleep或者Blocked状态。</p><p id="404df681-35d8-403d-a6b3-915d4e5040a4" class="">可以认为是扩展拉伸了的安全点。</p><p id="22747c64-958c-4082-bf94-42d5b9a7f09f" class="">当线程离开安全区域时，会去检查虚拟机是否完成根结点枚举（或者其他需要暂停用户线程的阶段）。如果完成，则无事发生继续执行，未完成则一直等待。</p></blockquote><h1 id="39f98460-c080-43a6-9bdd-8200f968d8c7" class="">记忆集与卡表</h1><blockquote id="14fae8de-bb04-4fc2-b8a3-1e560678323c" class="block-color-gray_background">记忆集是一种用来记录从非收集区域指向收集区域的指针集合的抽象数据类型。<p id="71f5bafe-4d53-4258-8a03-ba333fd1ae32" class="">为了解决部分区域收集跨代引用的问题。</p><p id="522bea39-6150-4384-a044-5c2480d996c4" class="">实现方案：</p><ol type="1" id="e1942a31-5fc4-4cd6-bcd5-6045f2c6634d" class="numbered-list" start="1"><li>字长精度：每个记录精确到一个机器字长（处理器的寻址位数，这个精度决定了机器访问物理内存地址的指针长度），该字包含跨代指针。</li></ol><ol type="1" id="a470defc-1467-472b-8836-c3c00649ca9b" class="numbered-list" start="2"><li>对象精度：每个记录精确到一个对象，该对象里有字段含有跨代指针。</li></ol><ol type="1" id="48d512a4-7e1e-4018-850a-5268fdcbfb3c" class="numbered-list" start="3"><li>卡精度：每个记录精确到一块内存区域，该区域内包含跨代指针。</li></ol><p id="8531e48f-1317-4604-917d-03fc74b75c2f" class="">卡表（Card Table）</p><ul id="62f772ae-2456-460b-a857-79b384b7cfdf" class="bulleted-list"><li style="list-style-type:disc">定义了记忆集的记录精度，与堆内存的映射关系。</li></ul><ul id="cdd59c2a-2a2c-4161-b5ba-1c3695b447fa" class="bulleted-list"><li style="list-style-type:disc">卡表最简单的形式只是一个字节数组。</li></ul><ul id="93ef851d-3dd2-4510-9dcb-41bc3aaba2e0" class="bulleted-list"><li style="list-style-type:disc">卡表的每个元素对应着一个特定的大小的内存块，这个内存块称为 卡页（Card Page）</li></ul><ul id="2a03ba65-4031-4286-b1f1-2a5649d62224" class="bulleted-list"><li style="list-style-type:disc">卡页大小是2的N次幂，HotSpot的卡页为2的9次幂，512字节</li></ul><ul id="81109ac9-314d-44d8-8371-ecda1dd94236" class="bulleted-list"><li style="list-style-type:disc">一个卡页通常包含不止一个对象，只要卡页内有一个对象存在跨代指针，则卡页标志为1-脏状态，垃圾收集器发生时，只需要筛选卡页变脏的内存块加入GC Roots中一并扫描</li></ul><figure id="85df2116-885b-4f3b-849b-9f20b804704c" class="image"><a href="HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55/卡表与卡页_拷贝.png"><img style="width:426px" src="HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55/卡表与卡页_拷贝.png"/></a></figure></blockquote><h1 id="a17da776-e780-439f-b262-fbf83c458e9b" class="">写屏障</h1><blockquote id="b1feb878-2722-43fd-926b-7d521376ec2b" class="block-color-gray_background">记忆集缩减了跨代引用GC Roots扫描范围过大的问题<p id="59a1c966-8821-41a6-af0c-6c7293ccc8a9" class="">记忆集通常使用卡表实现，卡表元素变脏，表示卡表元素对应的卡页中的对象存在跨代引用</p><p id="e9077a37-e986-45ec-be3b-a8461a1f0cdc" class="">写屏障来处理卡表的维护问题</p><ul id="dae18c19-a358-4d42-9348-6743777ab4d0" class="bulleted-list"><li style="list-style-type:disc"><em><strong>卡表何时变脏：</strong></em><ul id="389d5f6d-cc3c-43b3-9655-8ee60696ba45" class="bulleted-list"><li style="list-style-type:circle">有其他分代区域对象引用了本区域对象时，其对应的卡表元素就应该变脏，变脏的时机原则上应该发生在引用类型字段赋值的那一刻。</li></ul><ul id="6efca49c-a341-4277-a081-7276f9635d8e" class="bulleted-list"><li style="list-style-type:circle">如果是解释执行的字符串，虚拟机有充分的介入空间。但经过即时编译后的代码已经是纯粹的机器指令流了。</li></ul><ul id="427ac64e-baa9-4099-96f8-eaa79c2e95a6" class="bulleted-list"><li style="list-style-type:circle">因此必须找到一个在机器码层面的手段把维护卡表的动作放到每一个赋值操作之中。</li></ul></li></ul><ul id="7ee35805-d9a6-4d58-ba03-3dfb9e81844b" class="bulleted-list"><li style="list-style-type:disc"><em><strong>如何维护卡表：</strong></em><ul id="192b3e36-b426-4dcd-b1e5-d3c3bb791f2f" class="bulleted-list"><li style="list-style-type:circle">在HotSpot虚拟机里是通过写屏障（Write Barrier）技术维护卡表状态的。注意，这不是内存屏障。</li></ul><ul id="2bcd5f47-e9cd-4c86-a15c-6e4edb880110" class="bulleted-list"><li style="list-style-type:circle">写屏障可以看做是虚拟机层面对“引用类型字段赋值”这个动作的AOP切面，在引用对象赋值时会产生一个环形（Around）通知，提供程序执行额外的动作。<pre id="99797f4f-e4ca-4b33-8861-a70464102adf" class="code code-wrap"><code>void oop_field_store(oop* field, oop new_value) {
+    // 引用字段赋值操作
+    *field = new_value;
+    // 写后屏障，在这里更新卡表
+    post_write_barrier(field, new_value);
+}</code></pre><ul id="5bb9fc89-447a-41b8-9bf4-b2f99e4627dd" class="bulleted-list"><li style="list-style-type:square">赋值前的部分的写屏障叫做写前屏障（Pre-Write Barrier）</li></ul><ul id="dd107d54-6afb-48eb-808c-e2836d535f85" class="bulleted-list"><li style="list-style-type:square">赋值后的则叫写后屏障（Post-Write Barrier）</li></ul><ul id="5ae27bc0-465e-444b-8a06-f476f8156aee" class="bulleted-list"><li style="list-style-type:square">应用写屏障后，虚拟机会为所有赋值操作生成相应指令，无论更新的是不是老年代对新生代对象的引用，</li></ul><ul id="7592a820-9e71-4dc2-b775-7a0b3c270a68" class="bulleted-list"><li style="list-style-type:square">每次只要对引用进行更新，都会触发更新卡表的动作。这个额外的开销与Minor GC时扫描整个老年代的代价要低得多。</li></ul></li></ul></li></ul><ul id="5151a95c-aa03-4452-91b8-c71f12acc028" class="bulleted-list"><li style="list-style-type:disc"><em><strong>写屏障伪共享问题（False Sharing）</strong></em><p id="d2346f63-ce7b-4bf8-b4c7-784c58d36487" class="">伪共享是处理并发底层细节时一种经常需要考虑的问题，现代中央处理器的缓存系统中是以缓存行（Cache Line）为单位存储的，</p><p id="e7641146-b1f3-4943-b518-8ed72f05253a" class="">当多线程修改相互独立的变量时，如果这些变量恰好共享同一个缓存行，就会彼此影响（写回、无效化或同步）而导致性能降低。</p><p id="df6c4ec1-97ea-4585-9650-bfad9862ed84" class="">HotSpot虚拟机增加了一个新的参数<code>-XX:+UseCondCardMark</code>，用来决定是否开启卡表更新的条件判断。</p><pre id="1c9f348b-4d2c-48c5-873b-d09e115f9d01" class="code code-wrap"><code>if (CARD_TABLE [this address &gt;&gt; 9] != 0)
+    CARD_TABLE [this address &gt;&gt; 9] = 0;</code></pre><p id="cccf8af4-2eff-4e14-a105-b7de92b7e9d1" class="">开启会增加一次额外判断的开销，不开启会有伪共享问题。</p></li></ul></blockquote><h1 id="2791a1c8-922e-4ab9-a663-76e66bfbb861" class="">并发可达性分析</h1><blockquote id="9bb05b4b-ec46-4897-b96f-59de304fbcbc" class="block-color-gray_background">在可达性分析算法中，需要有根节点枚举，然后从根节点开始遍历对象图。<p id="f7f189fd-f6de-4406-ad96-1c2a4c756b1c" class="">根节点枚举中，GC Roots相比于整个堆的对象占比还是较小的，且有OopMap这种优化技巧，</p><p id="3a406013-6bc2-4dfe-96bb-8f95efaef2a5" class="">因此根节点枚举带来的停顿时间是短暂且相对固定的（不会随着堆容量而增长）。</p><p id="bcacee31-6b41-4082-b5b6-9f53855a896e" class="">但是！从GC Roots遍历对象图，这一步的停顿时间是会和堆容量成正比的。</p><h3 id="b89e982b-01bd-409b-9554-968083f2d2c8" class=""><strong><strong>三色标记（Tri-color Marking）</strong></strong></h3><p id="34515b1c-2d2f-4016-876a-c0f2da158b68" class="">要解决或降低用户线程的停顿，就是必须在一个保障一致性的快照上才能进行对象图的遍历。</p><p id="3a3c1609-3a2c-4a47-b9b4-597fa550e0a0" class="">按照“是否被访问过”这个条件将对象标记成以下三个颜色</p><figure id="3a3e4e4f-1876-4313-9b03-12738f60d0f9" class="image"><a href="HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55/Animation_of_tri-color_garbage_collection.gif"><img style="width:430px" src="HotSpot的回收算法实现%209975959d98494aedb577d1cee28c0a55/Animation_of_tri-color_garbage_collection.gif"/></a></figure><ul id="c3e4d10e-8a81-439e-b665-031e25ce369f" class="bulleted-list"><li style="list-style-type:disc">白色<blockquote id="1d8e7de1-4c69-4c1a-96dd-e4f3055e4bdb" class="">对象尚未被垃圾收集器访问过。在可达性分析开始阶段，所有对象都是白色的。<p id="b13f1116-cfb1-4aad-8c18-edec4205477a" class="">分析结束时，仍是白色的对象即代表不可达。</p></blockquote></li></ul><ul id="fc4518eb-82d7-46ba-8830-f866d9b1a357" class="bulleted-list"><li style="list-style-type:disc">黑色<blockquote id="c907c750-8d70-4b2e-b109-06d9504c199c" class="">表示对象已经被垃圾收集器访问过，且这个对象的所有引用都已经扫描过。<p id="26ea2e91-8a10-4cab-b1c6-4c20c5e46df9" class="">黑色对象是存活的，如果有对象引用指向了黑色对象，无须在扫描一遍。</p><p id="94918577-b252-42be-a947-521825657da1" class="">（标识最开始的时候，GC Roots都是黑色的，其他对象都是白色的）。</p></blockquote></li></ul><ul id="1a562ee7-c9ed-41ec-87b5-e8d08d07fdcf" class="bulleted-list"><li style="list-style-type:disc">灰色<blockquote id="0f3f3502-c2c7-4121-bba6-c371ab95891c" class="">表示对象已经被垃圾收集器访问过，但这个对象上至少存在一个引用还没有被扫描过。</blockquote></li></ul><h3 id="13c2300d-d180-4098-a8f3-23c841476ed9" class="">三色标记并发标记问题</h3><p id="68e4f7fd-022b-47fb-8859-e53a997cbc0d" class="">用户线程将一个黑色对象引用了一个白色对象。由于黑色对象不会再扫描，最终导致被白色对象被认为不可达。</p><ul id="ee8a9aa3-a272-489e-9c3b-cb43ac68c3c0" class="bulleted-list"><li style="list-style-type:disc">赋值器插入了一条或多条从黑色对象到白色对象的新引用</li></ul><ul id="fcb781db-33ec-40a5-ad67-1fb3eeca3eac" class="bulleted-list"><li style="list-style-type:disc">赋值器删除了全部从灰色对象到该白色对象的直接或间接引用。</li></ul><h3 id="acf6ba5f-50bd-4e8d-b0fc-d9d56d924ed3" class="">并发标记问题解决方案</h3><ul id="d86d5d2e-bc89-49be-8df1-9fee0b92680a" class="bulleted-list"><li style="list-style-type:disc"><strong>增量更新（Incremental Update）</strong><p id="6737a0c1-3e95-4086-9c01-b24f9a30530f" class="">当黑色对象插入新的指向白色对象的引用关系时，记录这个引用，等并发扫描结束后重新扫描一遍。</p><p id="32d80685-5547-4269-bcc8-e1254202cd35" class="">相当于黑色对象变成了灰色对象。</p></li></ul><ul id="375e07ea-7540-46d1-b508-050b393b288e" class="bulleted-list"><li style="list-style-type:disc"><strong>原始快照（Snapshot At The Beginning, SATB）</strong><p id="92558098-29b6-4ce4-b473-c70eaafac961" class="">当灰色对象要删除白色对象的引用关系时，记录删除的引用，等并发扫描结束后将记录中的灰色节点为根重新扫描一次。</p><p id="d0e44da1-49d0-4d2a-ba1b-9e910f95c82f" class="">可以简单理解为无论引用删除与否，都按照刚开始扫描的那一刻对象图快照进行扫描。</p></li></ul><p id="5cf85c5b-2f65-4375-b03d-08a77712d6b3" class=""><strong>CMS是基于增量更新来做并发标记的，G1、Shenandoah则是原始快照。</strong></p><h3 id="5c2cc02e-1bef-4efa-b2b5-fa4b3d964ae4" class="">原始快照和增量更新对比</h3><ul id="57e3b675-c1c7-46fd-b80f-4834b8a5f74f" class="bulleted-list"><li style="list-style-type:disc">原始快照更快捷，但是带来了浮动垃圾</li></ul><ul id="62aacec2-32de-4bdf-86cb-143fe1e32210" class="bulleted-list"><li style="list-style-type:disc">增量更新多了一步扫描，效率慢了一点，但是无浮动垃圾。</li></ul><p id="526a99a2-df34-47b2-a541-3ad5cb350e5c" class="">
+</p><p id="599d864f-0b54-47df-be98-8ad24437ecb1" class="block-color-red"><strong> todo todoJvm 原始快照疑问</strong><div class="indented"><ol type="1" id="089e29d5-0df0-4e96-bcaf-82552cbb3781" class="numbered-list" start="1"><li>为何要重新扫描删除引用的灰色结点</li></ol><ol type="1" id="fc05434a-e3d7-4f97-8de1-88eb341eb804" class="numbered-list" start="2"><li>如果并发标记期间新增白色对象，为黑色对象的引用，原始快照如何解决。</li></ol></div></p><p id="858ed377-e0e3-4729-a0a2-149399f79f5c" class="">
+</p></blockquote><hr id="a20fd341-3b2b-4e30-aacd-f04e733bb7c5"/><h1 id="380da6a0-ea62-492c-966f-53bf0c8b5b7f" class="">参考资料</h1><ul id="ef2fd225-4b44-4173-a8d6-fc371c13ed66" class="bulleted-list"><li style="list-style-type:disc">《深入理解Java虚拟机》</li></ul><ul id="3f6986bf-3bf4-43a0-99a2-2c87da760d85" class="bulleted-list"><li style="list-style-type:disc">三色标记法维基百科<figure id="1154433f-819b-470d-89fd-84a390410355"><a href="https://en.wikipedia.org/wiki/Tracing_garbage_collection#Tri-color_marking" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">Tracing garbage collection - Wikipedia</div><div class="bookmark-description">In computer programming, tracing garbage collection is a form of automatic memory management that consists of determining which objects should be deallocated (&quot;garbage collected&quot;) by tracing which objects are reachable by a chain of references from certain &quot;root&quot; objects, and considering the rest as &quot;garbage&quot; and collecting them.</div></div><div class="bookmark-href"><img src="https://en.wikipedia.org/static/favicon/wikipedia.ico" class="icon bookmark-icon"/>https://en.wikipedia.org/wiki/Tracing_garbage_collection#Tri-color_marking</div></div><img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/99/Question_book-new.svg/50px-Question_book-new.svg.png" class="bookmark-image"/></a><figcaption>三色标记法WIKI</figcaption></figure></li></ul></div></article></body></html>
